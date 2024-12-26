@@ -2,19 +2,24 @@
 
 namespace App\Models;
 
-use Illuminate\MongoBD\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Cohorte extends Model
 {
-    //
+    use SoftDeletes;
 
     protected $connection = 'mongodb';
     protected $collection = 'cohortes';
 
     protected $fillable = [
         'nom_cohorte',
-        'nbre_apprenant',
+        'nbre_employe',
         'description',
-        'date_creation'
+        'date_creation',
+        'date_modification',
+        'deleted_at'
     ];
+
+    protected $dates = ['deleted_at'];
 }
