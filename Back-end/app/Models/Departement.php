@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
@@ -16,10 +15,17 @@ class Departement extends Model
         'nom_departement',
         'nbre_employe',
         'description',
-        'date_creation',
-        'date_modification',
         'deleted_at'
     ];
 
     protected $dates = ['deleted_at'];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    // Relation avec les utilisateurs
+    public function users()
+    {
+        return $this->hasMany(Users::class, 'departement_id');
+    }
 }

@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use MongoDB\Laravel\Eloquent\Model;
@@ -14,12 +13,19 @@ class Cohorte extends Model
 
     protected $fillable = [
         'nom_cohorte',
-        'nbre_employe',
+        'nbre_apprenant',
         'description',
-        'date_creation',
-        'date_modification',
         'deleted_at'
     ];
 
     protected $dates = ['deleted_at'];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    // Relation avec les utilisateurs
+    public function users()
+    {
+        return $this->hasMany(Users::class, 'cohorte_id');
+    }
 }

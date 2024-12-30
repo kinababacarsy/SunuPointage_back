@@ -9,7 +9,7 @@ class CohorteController extends Controller
 {
     public function list()
     {
-        $cohortes = Cohorte::all();
+        $cohortes = Cohorte::with('users')->get();
         return response()->json($cohortes);
     }
 
@@ -17,19 +17,20 @@ class CohorteController extends Controller
     {
         $request->validate([
             'nom_cohorte' => 'required|string|max:255',
-            'nbre_employe' => 'required|integer',
             'description' => 'nullable|string',
-            'date_creation' => 'required|date',
-            'date_modification' => 'nullable|date',
         ]);
 
-        $cohorte = Cohorte::create($request->all());
+        // Définir nbre_apprenant à zéro si non fourni
+        $data = $request->all();
+        $data['nbre_apprenant'] = $data['nbre_apprenant'] ?? 0;
+
+        $cohorte = Cohorte::create($data);
         return response()->json($cohorte, 201);
     }
 
     public function view($id)
     {
-        $cohorte = Cohorte::findOrFail($id);
+        $cohorte = Cohorte::with('users')->findOrFail($id);
         return response()->json($cohorte);
     }
 
@@ -37,10 +38,7 @@ class CohorteController extends Controller
     {
         $request->validate([
             'nom_cohorte' => 'sometimes|required|string|max:255',
-            'nbre_employe' => 'sometimes|required|integer',
             'description' => 'nullable|string',
-            'date_creation' => 'sometimes|required|date',
-            'date_modification' => 'nullable|date',
         ]);
 
         $cohorte = Cohorte::findOrFail($id);

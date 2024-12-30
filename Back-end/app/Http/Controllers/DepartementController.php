@@ -9,7 +9,7 @@ class DepartementController extends Controller
 {
     public function list()
     {
-        $departements = Departement::all();
+        $departements = Departement::with('users')->get();
         return response()->json($departements);
     }
 
@@ -17,19 +17,20 @@ class DepartementController extends Controller
     {
         $request->validate([
             'nom_departement' => 'required|string|max:255',
-            'nbre_employe' => 'required|integer',
             'description' => 'nullable|string',
-            'date_creation' => 'required|date',
-            'date_modification' => 'nullable|date',
         ]);
 
-        $departement = Departement::create($request->all());
+        // Définir nbre_employe à zéro si non fourni
+        $data = $request->all();
+        $data['nbre_employe'] = $data['nbre_employe'] ?? 0;
+
+        $departement = Departement::create($data);
         return response()->json($departement, 201);
     }
 
     public function view($id)
     {
-        $departement = Departement::findOrFail($id);
+        $departement = Departement::with('users')->findOrFail($id);
         return response()->json($departement);
     }
 
@@ -37,10 +38,7 @@ class DepartementController extends Controller
     {
         $request->validate([
             'nom_departement' => 'sometimes|required|string|max:255',
-            'nbre_employe' => 'sometimes|required|integer',
             'description' => 'nullable|string',
-            'date_creation' => 'sometimes|required|date',
-            'date_modification' => 'nullable|date',
         ]);
 
         $departement = Departement::findOrFail($id);
