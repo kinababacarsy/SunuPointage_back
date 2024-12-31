@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Illuminate\MongoBD\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 
 class Departement extends Model
 {

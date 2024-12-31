@@ -8,5 +8,6 @@ class Test extends Model
 {
     protected $connection = 'mongodb';
     protected $collection = 'tests';
+    
+    protected $fillable = ['name'];
 }
-

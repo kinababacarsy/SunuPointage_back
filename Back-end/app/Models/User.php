@@ -5,7 +5,7 @@ use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 
-class Users extends Model implements AuthenticatableContract
+class User extends Model implements AuthenticatableContract
 {
    use Authenticatable;
 
