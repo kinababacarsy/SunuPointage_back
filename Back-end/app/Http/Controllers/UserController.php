@@ -37,17 +37,35 @@ class UserController extends Controller
             'nom' => 'required|string', 
             'prenom' => 'required|string', 
             'email' => 'required|email|unique:users,email', 
-            'telephone' => 'required|string', 
-            'photo' => 'required|string', 
-            'role' => 'required|string', 
-            'departement_id' => 'required|string', 
-            'cohorte_id' => 'required|string', 
+            'telephone' => ['required', 'regex:/^[0-9]{9}$/'], // Validation pour 9 chiffres            
+            'photo' => 'nullable|string', // Permet de soumettre une photo, sinon on prendra la valeur par défaut            
+            'departement_id' => 'nullable|string', 
+            'cohorte_id' => 'nullable|string', 
             'status' => 'required|boolean', 
         ]);
 
-        // Création de l'utilisateur
-        $user = User::create($validatedData); // Utilisation d'Eloquent pour créer un utilisateur
-        return response()->json($user, 201); // Retourner la réponse JSON avec l'utilisateur créé
+         // Vérification si une photo a été envoyée, sinon définir la photo par défaut
+        if (empty($validatedData['photo'])) {
+            $validatedData['photo'] = 'images/inconnu.png'; // Spécifier le chemin de l'image par défaut
+        }
+
+
+        try {
+            // Création de l'utilisateur
+            $user = User::create($validatedData); // Utilisation d'Eloquent pour créer un utilisateur
+    
+            // Retourner un message de succès avec les informations de l'utilisateur
+            return response()->json([
+                'message' => 'Utilisateur ajouté avec succès !',
+                'user' => $user
+            ], 201)->header('Content-Type', 'application/json; charset=utf-8');
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Échec de l\'ajout de l\'utilisateur.',
+                'error' => $e->getMessage()
+            ], 201)->header('Content-Type', 'application/json; charset=utf-8');// Code d'erreur 500 si une exception survient
+        }
+
     }
 
     // Mettre à jour un utilisateur
