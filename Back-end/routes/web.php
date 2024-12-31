@@ -11,14 +11,14 @@ use App\Models\Users;
 
 Route::get('/Users', function() {
    Users::create([
-       'nom' => ' Doe',
-       'prenom' => 'John',
-       'email' => 'john@example.com',
-       'mot de passe' => ('password123'),
-       'telephone' => '778965411',
-    'adresse' =>'Fass',
+       'nom' ,
+       'prenom'  ,
+       'email' ,
+       'mot de passe' ,
+       'telephone' ,
+    'adresse' ,
     'photo',
-    'role' =>'admin',
+    'role' ,
     'departement_id',
     'cohorte_id',
     'cardID',
