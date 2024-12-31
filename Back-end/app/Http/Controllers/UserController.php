@@ -29,7 +29,8 @@ class UserController extends Controller
             'departement_id' => 'nullable|string',
             'cohorte_id' => 'nullable|string',
             'cardID' => 'nullable|string',
-            'status' => 'required|boolean', 
+            'rfid_status' => 'Boolean (État actif/inactif de la carte RFID)',
+            'status' => 'required|boolean (État actif/inactif de utilisateur).', 
 
         ]);
 
@@ -136,14 +137,21 @@ class UserController extends Controller
              'ids' => 'required|array|min:1',
              'ids.*' => 'exists:users,_id',
          ]);
- 
+     
          if ($validator->fails()) {
              return response()->json($validator->errors(), 400);
          }
- 
+     
+         // Vérification : Empêcher la suppression d'administrateurs principaux
+         $criticalUsers = Users::whereIn('_id', $request->ids)->where('role', 'admin')->exists();
+         if ($criticalUsers) {
+             return response()->json(['message' => 'Impossible de supprimer un administrateur principal.'], 400);
+         }
+     
          Users::whereIn('_id', $request->ids)->delete();
          return response()->json(['message' => 'Utilisateurs supprimés avec succès'], 200);
      }
+     
  
      // Blocage/Déblocage d'un utilisateur
      public function toggleStatus($id)
@@ -165,4 +173,127 @@ class UserController extends Controller
         $newNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
         return $prefix . $newNumber;
     }
+
+    public function bloquerUtilisateur($id)
+    {
+        $user = Users::find($id);
+    
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
+        }
+    
+        $user->status = false;
+        $user->save();
+    
+        // Désactiver la carte RFID associée
+        $user->rfid_status = false; // Ajoute ce champ si nécessaire
+        $user->save();
+    
+        return response()->json([
+            'message' => 'Utilisateur bloqué, carte RFID désactivée.',
+            'user' => $user,
+        ], 200);
+    }
+    
+    public function debloquerUtilisateur($id)
+{
+    $user = Users::find($id);
+
+    if (!$user) {
+        return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
+    }
+
+    $user->status = true;
+    $user->save();
+
+    // Activer la carte RFID associée
+    $user->rfid_status = true; // Ajoute ce champ si nécessaire
+    $user->save();
+
+    return response()->json([
+        'message' => 'Utilisateur débloqué, carte RFID activée.',
+        'user' => $user,
+    ], 200);
+}
+
+public function lireCarte(Request $request)
+{
+    $cardID = $request->input('cardID');
+    $user = Users::where('cardID', $cardID)->first();
+
+    if (!$user) {
+        return response()->json(['message' => 'Carte non reconnue.'], 404);
+    }
+
+    if (!$user->rfid_status) {
+        return response()->json(['message' => 'Carte inactive.'], 403);
+    }
+
+    return response()->json([
+        'message' => 'Carte valide.',
+        'user' => $user,
+    ], 200);
+}
+
+
+public function assignerCarteRFID(Request $request, $id)
+{
+    $user = Users::find($id);
+
+    if (!$user) {
+        return response()->json(['message' => 'Utilisateur non trouvé.'], 404);
+    }
+
+    $cardID = $request->input('cardID');
+
+    // Vérifier si la carte est déjà assignée
+    $existingUser = Users::where('cardID', $cardID)->first();
+    if ($existingUser) {
+        return response()->json(['message' => 'Cette carte RFID est déjà assignée à un autre utilisateur.'], 400);
+    }
+      // Vérifier si la carte est inactive
+      if ($existingUser && !$existingUser->rfid_status) {
+        return response()->json(['message' => 'Cette carte est inactive.'], 400);
+    }
+
+    // Assigner la carte RFID
+    $user->cardID = $cardID;
+    $user->rfid_status = true; // Active par défaut lors de l'assignation
+    $user->save();
+
+    return response()->json([
+        'message' => 'Carte RFID assignée avec succès.',
+        'user' => $user,
+    ], 200);
+}
+
+public function activerCarte($cardID)
+{
+    $user = Users::where('cardID', $cardID)->first();
+
+    if (!$user) {
+        return response()->json(['message' => 'Carte non trouvée.'], 404);
+    }
+
+    $user->rfid_status = true;
+    $user->save();
+
+    return response()->json(['message' => 'Carte activée avec succès.', 'user' => $user], 200);
+}
+
+public function desactiverCarte($cardID)
+{
+    $user = Users::where('cardID', $cardID)->first();
+
+    if (!$user) {
+        return response()->json(['message' => 'Carte non trouvée.'], 404);
+    }
+
+    $user->rfid_status = false;
+    $user->save();
+
+    return response()->json(['message' => 'Carte désactivée avec succès.', 'user' => $user], 200);
+}
+
+
 }

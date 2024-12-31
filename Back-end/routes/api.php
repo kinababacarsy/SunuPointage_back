@@ -30,9 +30,28 @@ Route::delete('sup/users/{id}', [UserController::class, 'delete']);
 // Routes pour la suppression multiple
 Route::delete('sup/multiple/users', [UserController::class, 'deleteMultiple']);
 
-// Routes pour bloquer et débloquer un utilisateur
-Route::patch('users/bloquer/{id}', [UserController::class, 'bloquer']);
-Route::patch('users/debloquer/{id}', [UserController::class, 'debloquer']);
+// Bloquer un utilisateur et désactiver sa carte RFID
+Route::patch('users/bloquer/{id}', [UserController::class, 'bloquerUtilisateur']);
+
+// Débloquer un utilisateur et activer sa carte RFID
+Route::patch('users/debloquer/{id}', [UserController::class, 'debloquerUtilisateur']);
+
+
+// Assigner une carte RFID à un utilisateur
+Route::post('users/rfid/assigner/{id}', [UserController::class, 'assignerCarteRFID']);
+
+// Vérifier l'état d'une carte RFID avant de l'utiliser
+Route::get('user/rfid/etat/{cardID}', [UserController::class, 'verifierEtatCarte']);
+
+// Lecture d'une carte RFID
+Route::post('users/rfid/lecture', [UserController::class, 'lireCarte']);
+
+// Activer une carte RFID manuellement
+Route::patch('users/rfid/activer/{cardID}', [UserController::class, 'activerCarte']);
+
+// Désactiver une carte RFID manuellement
+Route::patch('users/rfid/desactiver/{cardID}', [UserController::class, 'desactiverCarte']);
+
 
 // Routes pour ajouter un utilisateur à partir d'un département
 Route::post('departements/{departement_id}/ajout/users', [UserController::class, 'createFromDepartement']);
