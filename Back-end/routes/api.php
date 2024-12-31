@@ -27,6 +27,13 @@ Route::get('voir/users/{id}', [UserController::class, 'view']);
 Route::put('maj/users/{id}', [UserController::class, 'update']);
 Route::delete('sup/users/{id}', [UserController::class, 'delete']);
 
+// Routes pour la suppression multiple
+Route::delete('sup/multiple/users', [UserController::class, 'deleteMultiple']);
+
+// Routes pour bloquer et débloquer un utilisateur
+Route::patch('users/bloquer/{id}', [UserController::class, 'bloquer']);
+Route::patch('users/debloquer/{id}', [UserController::class, 'debloquer']);
+
 // Routes pour ajouter un utilisateur à partir d'un département
 Route::post('departements/{departement_id}/ajout/users', [UserController::class, 'createFromDepartement']);
 

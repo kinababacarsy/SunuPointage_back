@@ -129,6 +129,34 @@ class UserController extends Controller
         return response()->json(null, 204);
     }
 
+     // Suppression multiple
+     public function deleteMultiple(Request $request)
+     {
+         $validator = Validator::make($request->all(), [
+             'ids' => 'required|array|min:1',
+             'ids.*' => 'exists:users,_id',
+         ]);
+ 
+         if ($validator->fails()) {
+             return response()->json($validator->errors(), 400);
+         }
+ 
+         Users::whereIn('_id', $request->ids)->delete();
+         return response()->json(['message' => 'Utilisateurs supprimés avec succès'], 200);
+     }
+ 
+     // Blocage/Déblocage d'un utilisateur
+     public function toggleStatus($id)
+     {
+         $user = Users::findOrFail($id);
+         $user->status = !$user->status; // Inverse le statut (actif/inactif)
+         $user->save();
+ 
+         $message = $user->status ? 'Utilisateur activé avec succès' : 'Utilisateur désactivé avec succès';
+         return response()->json(['message' => $message, 'user' => $user], 200);
+     }
+ 
+
     private function generateMatricule($role)
     {
         $prefix = ($role === 'employe') ? 'EMP' : 'APP';
