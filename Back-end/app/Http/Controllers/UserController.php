@@ -13,7 +13,7 @@ class UserController extends Controller
     public function list()
     {
         $users = Users::all();
-        return response()->json($users);
+        return response()->json($users, 200);
     }
 
     public function create(Request $request)
@@ -22,13 +22,15 @@ class UserController extends Controller
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'telephone' => 'required|string|max:20',
+            'telephone' => ['required', 'regex:/^[0-9]{9}$/'], // Validation pour 9 chiffres            
             'adresse' => 'nullable|string',
-            'photo' => 'nullable|string',
+            'photo' => 'nullable|string', // Permet de soumettre une photo, sinon on prendra la valeur par défaut            
             'role' => 'required|in:employe,apprenant',
             'departement_id' => 'nullable|string',
             'cohorte_id' => 'nullable|string',
             'cardID' => 'nullable|string',
+            'status' => 'required|boolean', 
+
         ]);
 
         if ($validator->fails()) {
@@ -62,6 +64,12 @@ class UserController extends Controller
             }
         }
 
+          // Vérification si une photo a été envoyée, sinon définir la photo par défaut
+          if (empty($validatedData['photo'])) {
+            $validatedData['photo'] = 'images/inconnu.png'; // Spécifier le chemin de l'image par défaut
+        }
+
+        
         // Créer l'utilisateur
         $user = Users::create($data);
 
@@ -80,11 +88,14 @@ class UserController extends Controller
         return $this->create($request);
     }
 
+
     public function view($id)
     {
         $user = Users::findOrFail($id);
         return response()->json($user);
     }
+
+
 
     public function update(Request $request, $id)
     {

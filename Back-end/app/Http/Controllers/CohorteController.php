@@ -6,7 +6,9 @@ use App\Models\Cohorte;
 use Illuminate\Http\Request;
 
 class CohorteController extends Controller
+
 {
+
     public function list()
     {
         $cohortes = Cohorte::with('users')->get();
