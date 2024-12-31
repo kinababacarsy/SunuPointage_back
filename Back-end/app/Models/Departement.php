@@ -1,12 +1,12 @@
 <?php
-
 namespace App\Models;
 
-use Illuminate\MongoBD\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Departement extends Model
 {
-    //
+    use SoftDeletes;
 
     protected $connection = 'mongodb';
     protected $collection = 'departements';
@@ -15,7 +15,17 @@ class Departement extends Model
         'nom_departement',
         'nbre_employe',
         'description',
-        'date_creation',
-        'date_modification'
+        'deleted_at'
     ];
+
+    protected $dates = ['deleted_at'];
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    // Relation avec les utilisateurs
+    public function users()
+    {
+        return $this->hasMany(Users::class, 'departement_id');
+    }
 }
