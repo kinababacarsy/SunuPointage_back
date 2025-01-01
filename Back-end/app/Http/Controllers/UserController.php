@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
 
 
 class UserController extends Controller
@@ -37,10 +38,13 @@ class UserController extends Controller
             'nom' => 'required|string', 
             'prenom' => 'required|string', 
             'email' => 'required|email|unique:users,email', 
-            'telephone' => ['required', 'regex:/^[0-9]{9}$/'], // Validation pour 9 chiffres            
+            'mot_de_passe' => 'required|string|min:8', // Ajout de validation pour mot de passe            
+            'adresse' => 'required|string', 
+            'role' => 'required|string|in:admin,vigile,employe,apprenant',
             'photo' => 'nullable|string', // Permet de soumettre une photo, sinon on prendra la valeur par défaut            
             'departement_id' => 'nullable|string', 
-            'cohorte_id' => 'nullable|string', 
+            'cohorte_id' => 'nullable|string',
+            'cardID' => 'required|string', 
             'status' => 'required|boolean', 
         ]);
 
@@ -48,6 +52,10 @@ class UserController extends Controller
         if (empty($validatedData['photo'])) {
             $validatedData['photo'] = 'images/inconnu.png'; // Spécifier le chemin de l'image par défaut
         }
+
+        // Hash du mot de passe
+        $validatedData['mot_de_passe'] = Hash::make($validatedData['mot_de_passe']);
+
 
 
         try {
