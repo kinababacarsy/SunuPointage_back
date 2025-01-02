@@ -13,7 +13,6 @@ class Departement extends Model
 
     protected $fillable = [
         'nom_departement',
-        'nbre_employe',
         'description',
         'deleted_at'
     ];
@@ -27,5 +26,11 @@ class Departement extends Model
     public function users()
     {
         return $this->hasMany(Users::class, 'departement_id');
+    }
+
+    // Méthode pour obtenir le nombre d'employés
+    public function getEmployeeCountAttribute()
+    {
+        return $this->users()->where('role', 'employe')->count();
     }
 }

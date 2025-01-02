@@ -29,9 +29,25 @@ Route::delete('sup/users/{id}', [UserController::class, 'delete']);
 
 // Routes pour ajouter un utilisateur à partir d'un département
 Route::post('departements/{departement_id}/ajout/users', [UserController::class, 'createFromDepartement']);
+Route::post('/departements/{departement_id}/import-users', [UserController::class, 'importCSV']);
+
+// Routes pour afficher les utilisateurs à partir d'un département
+Route::get('/users/departement/{departement_id}', [UserController::class, 'listByDepartement']);
+
+// Récupérer le nombre d'employés dans un département
+Route::get('/departements/{departement_id}/employee-count', [DepartementController::class, 'getEmployeeCount']);
+
+// Récupérer le nombre d'apprenants dans une cohorte
+Route::get('/cohortes/{cohorte_id}/apprenant-count', [CohorteController::class, 'getApprenantCount']);
 
 // Routes pour ajouter un utilisateur à partir d'une cohorte
 Route::post('cohortes/{cohorte_id}/ajout/users', [UserController::class, 'createFromCohorte']);
+
+// Routes pour importer des utilisateurs à partir d'une cohorte
+Route::post('/cohortes/{cohorte_id}/import-users', [UserController::class, 'importCSV']);
+
+// Routes pour afficher les utilisateurs à partir d'une cohorte
+Route::get('/users/cohorte/{cohorte_id}', [UserController::class, 'listByCohorte']);
 
 // Route pour obtenir l'utilisateur authentifié
 Route::get('/user', function (Request $request) {

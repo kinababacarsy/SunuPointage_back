@@ -13,7 +13,6 @@ class Cohorte extends Model
 
     protected $fillable = [
         'nom_cohorte',
-        'nbre_apprenant',
         'description',
         'deleted_at'
     ];
@@ -27,5 +26,11 @@ class Cohorte extends Model
     public function users()
     {
         return $this->hasMany(Users::class, 'cohorte_id');
+    }
+
+    // Méthode pour obtenir le nombre d'apprenants
+    public function getApprenantCountAttribute()
+    {
+        return $this->users()->where('role', 'apprenant')->count();
     }
 }

@@ -3,16 +3,30 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cohorte;
+use App\Models\Users;
 use Illuminate\Http\Request;
 
 class CohorteController extends Controller
 {
+    /**
+     * Liste des cohortes avec le nombre d'apprenants
+     */
     public function list()
     {
+        // Récupérer toutes les cohortes avec leurs utilisateurs
         $cohortes = Cohorte::with('users')->get();
+
+        // Ajouter le nombre d'apprenants à chaque cohorte
+        $cohortes->each(function ($cohorte) {
+            $cohorte->nbre_apprenant = $cohorte->users->where('role', 'apprenant')->count();
+        });
+
         return response()->json($cohortes);
     }
 
+    /**
+     * Créer une cohorte
+     */
     public function create(Request $request)
     {
         $request->validate([
@@ -20,20 +34,29 @@ class CohorteController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        // Définir nbre_apprenant à zéro si non fourni
-        $data = $request->all();
-        $data['nbre_apprenant'] = $data['nbre_apprenant'] ?? 0;
+        // Créer la cohorte
+        $cohorte = Cohorte::create($request->all());
 
-        $cohorte = Cohorte::create($data);
         return response()->json($cohorte, 201);
     }
 
+    /**
+     * Afficher une cohorte avec le nombre d'apprenants
+     */
     public function view($id)
     {
+        // Récupérer la cohorte avec ses utilisateurs
         $cohorte = Cohorte::with('users')->findOrFail($id);
+
+        // Ajouter le nombre d'apprenants
+        $cohorte->nbre_apprenant = $cohorte->users->where('role', 'apprenant')->count();
+
         return response()->json($cohorte);
     }
 
+    /**
+     * Mettre à jour une cohorte
+     */
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -41,15 +64,22 @@ class CohorteController extends Controller
             'description' => 'nullable|string',
         ]);
 
+        // Mettre à jour la cohorte
         $cohorte = Cohorte::findOrFail($id);
         $cohorte->update($request->all());
+
         return response()->json($cohorte, 200);
     }
 
+    /**
+     * Supprimer une cohorte
+     */
     public function delete($id)
     {
+        // Supprimer la cohorte
         $cohorte = Cohorte::findOrFail($id);
         $cohorte->delete();
+
         return response()->json(null, 204);
     }
 }
