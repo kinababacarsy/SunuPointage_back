@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
-
 
 class UserController extends Controller
 {
@@ -37,6 +35,7 @@ class UserController extends Controller
             'matricule' => 'required|string|unique:users,matricule', 
             'nom' => 'required|string', 
             'prenom' => 'required|string', 
+            'telephone' => 'required|string|digits:9|regex:/^[0-9]+$/',         
             'email' => 'required|email|unique:users,email', 
             'mot_de_passe' => 'required|string|min:8', // Ajout de validation pour mot de passe            
             'adresse' => 'required|string', 
@@ -44,7 +43,7 @@ class UserController extends Controller
             'photo' => 'nullable|string', // Permet de soumettre une photo, sinon on prendra la valeur par défaut            
             'departement_id' => 'nullable|string', 
             'cohorte_id' => 'nullable|string',
-            'cardID' => 'required|string', 
+            'cardID' => 'nullable|string', 
             'status' => 'required|boolean', 
         ]);
 
@@ -55,8 +54,6 @@ class UserController extends Controller
 
         // Hash du mot de passe
         $validatedData['mot_de_passe'] = Hash::make($validatedData['mot_de_passe']);
-
-
 
         try {
             // Création de l'utilisateur
@@ -92,10 +89,13 @@ class UserController extends Controller
             'prenom' => 'sometimes|string', 
             'email' => 'sometimes|email|unique:users,email,' . $id, 
             'telephone' => 'sometimes|string', 
+            'mot_de_passe' => 'sometimes|string', 
+            'adresse' => 'sometimes|string', 
             'photo' => 'sometimes|string', 
             'role' => 'sometimes|string', 
             'departement_id' => 'sometimes|string', 
             'cohorte_id' => 'sometimes|string', 
+            'cardID' => 'sometimes|string', 
             'status' => 'sometimes|boolean', 
         ]);
 
@@ -116,4 +116,7 @@ class UserController extends Controller
         $user->delete(); // Supprimer l'utilisateur avec Eloquent
         return response()->json(['message' => 'Utilisateur supprimé'], 200); // Retourner un message de confirmation
     }
+
+    // Connexion de l'utilisateur
+
 }

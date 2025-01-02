@@ -7,10 +7,10 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-use App\Models\Users;
+use App\Models\User;
 
 Route::get('/Users', function() {
-   Users::create([
+   User::create([
        'nom' => ' Doe',
        'prenom' => 'John',
        'email' => 'john@example.com',
@@ -25,7 +25,7 @@ Route::get('/Users', function() {
     'status'
    ]);
    
-   return Users::all();
+   return User::all();
 });
 
 

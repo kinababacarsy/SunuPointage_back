@@ -3,6 +3,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AuthController;
+
 
 
 Route::prefix('user')->group(function () {
@@ -12,6 +14,11 @@ Route::prefix('user')->group(function () {
     Route::put('/{id}', [UserController::class, 'update']); // Mettre à jour un utilisateur
     Route::delete('/{id}', [UserController::class, 'destroy']); // Supprimer un utilisateur
 });
+// Route pour la connexion
+Route::post('login', [AuthController::class, 'login']); // Route pour la connexion
+
+// Route pour la déconnexion (révocation du token)
+Route::post('logout', [AuthController::class, 'logout']); // Route pour la déconnexion
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
