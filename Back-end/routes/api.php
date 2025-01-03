@@ -41,12 +41,12 @@ Route::patch('users/debloquer/{id}', [UserController::class, 'debloquerUtilisate
 Route::post('users/rfid/assigner/{id}', [UserController::class, 'assignerCarteRFID']);
 
 // Vérifier l'état d'une carte RFID avant de l'utiliser
-Route::get('user/rfid/etat/{cardID}', [UserController::class, 'verifierEtatCarte']);
+Route::get('users-/rfid/etat/{cardID}', [UserController::class, 'verifierEtatCarte']);
 
 // Lecture d'une carte RFID
 Route::post('users/rfid/lecture', [UserController::class, 'lireCarte']);
 
-// Activer une carte RFID manuellement
+// Activer une carte RFID manuellement014
 Route::patch('users/rfid/activer/{cardID}', [UserController::class, 'activerCarte']);
 
 // Désactiver une carte RFID manuellement
