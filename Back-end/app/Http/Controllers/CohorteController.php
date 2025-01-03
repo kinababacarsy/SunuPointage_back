@@ -1,10 +1,11 @@
 <?php
-
+// CohorteController.php
 namespace App\Http\Controllers;
 
 use App\Models\Cohorte;
 use App\Models\Users;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class CohorteController extends Controller
 {
@@ -29,15 +30,23 @@ class CohorteController extends Controller
      */
     public function create(Request $request)
     {
-        $request->validate([
-            'nom_cohorte' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+        try {
+            $request->validate([
+                'nom_cohorte' => 'required|string|max:255|unique:cohortes,nom_cohorte',
+                'description' => 'nullable|string',
+            ]);
 
-        // Créer la cohorte
-        $cohorte = Cohorte::create($request->all());
+            // Créer la cohorte
+            $cohorte = Cohorte::create($request->all());
 
-        return response()->json($cohorte, 201);
+            return response()->json($cohorte, 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => [
+                    'nom_cohorte' => ['Le nom de la cohorte est déjà pris.'],
+                ],
+            ], 422);
+        }
     }
 
     /**
@@ -59,16 +68,24 @@ class CohorteController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'nom_cohorte' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+        try {
+            $request->validate([
+                'nom_cohorte' => 'sometimes|required|string|max:255|unique:cohortes,nom_cohorte,' . $id,
+                'description' => 'nullable|string',
+            ]);
 
-        // Mettre à jour la cohorte
-        $cohorte = Cohorte::findOrFail($id);
-        $cohorte->update($request->all());
+            // Mettre à jour la cohorte
+            $cohorte = Cohorte::findOrFail($id);
+            $cohorte->update($request->all());
 
-        return response()->json($cohorte, 200);
+            return response()->json($cohorte, 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => [
+                    'nom_cohorte' => ['Le nom de la cohorte est déjà pris.'],
+                ],
+            ], 422);
+        }
     }
 
     /**
@@ -82,7 +99,8 @@ class CohorteController extends Controller
 
         return response()->json(null, 204);
     }
-  /**
+
+    /**
      * Récupérer le nombre total de cohortes
      */
     public function count()
@@ -92,7 +110,4 @@ class CohorteController extends Controller
 
         return response()->json(['total_cohortes' => $totalCohortes]);
     }
-
-
-
 }
