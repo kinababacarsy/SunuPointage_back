@@ -12,6 +12,7 @@ Route::post('ajout/departements', [DepartementController::class, 'create']);
 Route::get('voir/departements/{id}', [DepartementController::class, 'view']);
 Route::put('maj/departements/{id}', [DepartementController::class, 'update']);
 Route::delete('sup/departements/{id}', [DepartementController::class, 'delete']);
+Route::get('/departements/count', [DepartementController::class, 'count']);
 
 // Routes pour les cohortes
 Route::get('cohortes', [CohorteController::class, 'list']);
@@ -19,6 +20,7 @@ Route::post('ajout/cohortes', [CohorteController::class, 'create']);
 Route::get('voir/cohortes/{id}', [CohorteController::class, 'view']);
 Route::put('maj/cohortes/{id}', [CohorteController::class, 'update']);
 Route::delete('sup/cohortes/{id}', [CohorteController::class, 'delete']);
+Route::get('/cohortes/count', [CohorteController::class, 'count']);
 
 // Routes pour les utilisateurs
 Route::get('users', [UserController::class, 'list']);
@@ -29,7 +31,9 @@ Route::delete('sup/users/{id}', [UserController::class, 'delete']);
 
 // Routes pour ajouter un utilisateur à partir d'un département
 Route::post('departements/{departement_id}/ajout/users', [UserController::class, 'createFromDepartement']);
-Route::post('/departements/{departement_id}/import-users', [UserController::class, 'importCSV']);
+// Route pour importer des utilisateurs à partir d'un département
+Route::post('/departements/{departement_id}/import-users', [UserController::class, 'importCSVForDepartement']);
+
 
 // Routes pour afficher les utilisateurs à partir d'un département
 Route::get('/users/departement/{departement_id}', [UserController::class, 'listByDepartement']);
@@ -43,13 +47,9 @@ Route::get('/cohortes/{cohorte_id}/apprenant-count', [CohorteController::class, 
 // Routes pour ajouter un utilisateur à partir d'une cohorte
 Route::post('cohortes/{cohorte_id}/ajout/users', [UserController::class, 'createFromCohorte']);
 
-// Routes pour importer des utilisateurs à partir d'une cohorte
-Route::post('/cohortes/{cohorte_id}/import-users', [UserController::class, 'importCSV']);
+// Route pour importer des utilisateurs à partir d'une cohorte
+Route::post('/cohortes/{cohorte_id}/import-users', [UserController::class, 'importCSVForCohorte']);
 
 // Routes pour afficher les utilisateurs à partir d'une cohorte
 Route::get('/users/cohorte/{cohorte_id}', [UserController::class, 'listByCohorte']);
 
-// Route pour obtenir l'utilisateur authentifié
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');

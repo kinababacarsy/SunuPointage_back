@@ -171,109 +171,104 @@ class UserController extends Controller
         return response()->json($users);
     }
 
-    // Importer des utilisateurs à partir d'un CSV
-    public function importCSV(Request $request, $departement_id = null, $cohorte_id = null)
-    {
-        // Validation du fichier CSV
-        $validator = Validator::make($request->all(), [
-            'csv_file' => 'required|file|mimes:csv,txt',
+// Importer des utilisateurs à partir d'un CSV pour un département
+public function importCSVForDepartement(Request $request, $departement_id)
+{
+    return $this->importCSV($request, $departement_id, null);
+}
+
+// Importer des utilisateurs à partir d'un CSV pour une cohorte
+public function importCSVForCohorte(Request $request, $cohorte_id)
+{
+    return $this->importCSV($request, null, $cohorte_id);
+}
+
+// Méthode principale pour importer des utilisateurs à partir d'un CSV
+private function importCSV(Request $request, $departement_id = null, $cohorte_id = null)
+{
+    // Validation du fichier CSV
+    $validator = Validator::make($request->all(), [
+        'csv_file' => 'required|file|mimes:csv,txt',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json($validator->errors(), 400);
+    }
+
+    // Lire le fichier CSV
+    $file = $request->file('csv_file');
+    $csv = Reader::createFromPath($file->getPathname(), 'r');
+    $csv->setHeaderOffset(0);
+
+    $errors = [];
+    $importedUsers = [];
+    $lineNumber = 1;
+
+    foreach ($csv as $record) {
+        $lineNumber++;
+
+        // Validation des données du CSV
+        $validator = Validator::make($record, [
+            'nom' => 'required|string|max:255',
+            'prenom' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'telephone' => 'required|string|max:20',
+            'adresse' => 'nullable|string',
+            'photo' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 400);
+            $errors[] = [
+                'line' => $lineNumber,
+                'errors' => $validator->errors(),
+                'data' => $record,
+            ];
+            continue;
         }
 
-        // Lire le fichier CSV
-        $file = $request->file('csv_file');
-        $csv = Reader::createFromPath($file->getPathname(), 'r');
-        $csv->setHeaderOffset(0);
+        // Créer une requête pour chaque enregistrement
+        $userRequest = new Request([
+            'nom' => $record['nom'],
+            'prenom' => $record['prenom'],
+            'email' => $record['email'],
+            'telephone' => $record['telephone'],
+            'adresse' => $record['adresse'],
+            'photo' => $record['photo'],
+            'status' => null, // Ajout de status avec une valeur par défaut null
+            'cardID' => null, // Ajout de cardID avec une valeur par défaut null
+        ]);
 
-        $errors = [];
-        $importedUsers = [];
-        $lineNumber = 1;
-
-        foreach ($csv as $record) {
-            $lineNumber++;
-
-            // Validation des données du CSV
-            $validator = Validator::make($record, [
-                'nom' => 'required|string|max:255',
-                'prenom' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
-                'telephone' => 'required|string|max:20',
-                'adresse' => 'nullable|string',
-                'photo' => 'nullable|string',
-            ]);
-
-            if ($validator->fails()) {
-                $errors[] = [
-                    'line' => $lineNumber,
-                    'errors' => $validator->errors(),
-                    'data' => $record,
-                ];
-                continue;
-            }
-
-            // Créer une requête pour chaque enregistrement
-            $userRequest = new Request([
-                'nom' => $record['nom'],
-                'prenom' => $record['prenom'],
-                'email' => $record['email'],
-                'telephone' => $record['telephone'],
-                'adresse' => $record['adresse'],
-                'photo' => $record['photo'],
-            ]);
-
-            // Créer l'utilisateur en fonction du département ou de la cohorte
-            if ($departement_id) {
-                $response = $this->createFromDepartement($userRequest, $departement_id);
-            } elseif ($cohorte_id) {
-                $response = $this->createFromCohorte($userRequest, $cohorte_id);
-            } else {
-                $errors[] = [
-                    'line' => $lineNumber,
-                    'errors' => ['message' => 'Aucun département ou cohorte spécifié'],
-                    'data' => $record,
-                ];
-                continue;
-            }
-
-            if ($response->getStatusCode() === 201) {
-                $importedUsers[] = $response->getData();
-            } else {
-                $errors[] = [
-                    'line' => $lineNumber,
-                    'errors' => $response->getData(),
-                    'data' => $record,
-                ];
-            }
-        }
-
-        return response()->json([
-            'imported_users' => $importedUsers,
-            'errors' => $errors,
-        ], 200);
-    }
-
-    // Obtenir le nombre d'employés ou d'apprenants par département ou cohorte
-    public function getCount($type, $id)
-    {
-        if ($type === 'departement') {
-            $departement = Departement::find($id);
-            if (!$departement) {
-                return response()->json(['message' => 'Département non trouvé'], 404);
-            }
-            $count = Users::where('departement_id', $id)->where('role', 'employe')->count();
-            return response()->json(['count' => $count]);
-        } elseif ($type === 'cohorte') {
-            $cohorte = Cohorte::find($id);
-            if (!$cohorte) {
-                return response()->json(['message' => 'Cohorte non trouvée'], 404);
-            }
-            $count = Users::where('cohorte_id', $id)->where('role', 'apprenant')->count();
-            return response()->json(['count' => $count]);
+        // Créer l'utilisateur en fonction du département ou de la cohorte
+        if ($departement_id) {
+            $response = $this->createFromDepartement($userRequest, $departement_id);
+        } elseif ($cohorte_id) {
+            $response = $this->createFromCohorte($userRequest, $cohorte_id);
         } else {
-            return response()->json(['message' => 'Type non valide'], 400);
+            $errors[] = [
+                'line' => $lineNumber,
+                'errors' => ['message' => 'Aucun département ou cohorte spécifié'],
+                'data' => $record,
+            ];
+            continue;
+        }
+
+        if ($response->getStatusCode() === 201) {
+            $importedUsers[] = $response->getData();
+        } else {
+            $errors[] = [
+                'line' => $lineNumber,
+                'errors' => $response->getData(),
+                'data' => $record,
+            ];
         }
     }
+
+    return response()->json([
+        'imported_users' => $importedUsers,
+        'errors' => $errors,
+    ], 200);
+}
+
+
+
 }

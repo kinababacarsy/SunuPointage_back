@@ -82,4 +82,17 @@ class CohorteController extends Controller
 
         return response()->json(null, 204);
     }
+  /**
+     * Récupérer le nombre total de cohortes
+     */
+    public function count()
+    {
+        // Récupérer le nombre total de cohortes
+        $totalCohortes = Cohorte::count();
+
+        return response()->json(['total_cohortes' => $totalCohortes]);
+    }
+
+
+
 }

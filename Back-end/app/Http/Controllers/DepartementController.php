@@ -82,4 +82,16 @@ class DepartementController extends Controller
 
         return response()->json(null, 204);
     }
+/**
+     * Récupérer le nombre total de départements
+     */
+    public function count()
+    {
+        // Récupérer le nombre total de départements
+        $totalDepartements = Departement::count();
+
+        return response()->json(['total_departements' => $totalDepartements]);
+    }
+
+
 }
