@@ -29,7 +29,7 @@ class UserController extends Controller
             'telephone' => ['required', 'regex:/^[0-9]{9}$/'], // Validation pour 9 chiffres            
             'adresse' => 'nullable|string',
             'photo' => 'nullable|string',
-            'role' => 'required|in:employe,apprenant',
+            'role' => 'required|in:employe,apprenant,admin,vigile',
             'departement_id' => 'nullable|string|exists:departements,_id',
             'cohorte_id' => 'nullable|string|exists:cohortes,_id',
             'cardID' => 'nullable|string',
