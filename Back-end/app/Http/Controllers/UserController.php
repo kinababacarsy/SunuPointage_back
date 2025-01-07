@@ -178,7 +178,6 @@ class UserController extends Controller
                 'telephone' => 'required|string|max:20',
                 'adresse' => 'nullable|string',
                 'photo' => 'nullable|string',
-                'role' => 'required|string|in:admin,vigile,employe,apprenant',
             ]);
 
             if ($validator->fails()) {
@@ -198,7 +197,6 @@ class UserController extends Controller
                 'telephone' => $record['telephone'],
                 'adresse' => $record['adresse'],
                 'photo' => $record['photo'],
-                'role' => $record['role'],
                 'status' => 'Actif', // Statut par défaut
                 'cardID' => null, // cardID par défaut
             ]);
@@ -243,6 +241,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Département non trouvé'], 404);
         }
 
+        // Définir le rôle comme "employe" pour les utilisateurs créés via un département
         $request->merge(['departement_id' => $departement_id, 'role' => 'employe']);
         return $this->store($request);
     }
@@ -256,6 +255,7 @@ class UserController extends Controller
             return response()->json(['message' => 'Cohorte non trouvée'], 404);
         }
 
+        // Définir le rôle comme "apprenant" pour les utilisateurs créés via une cohorte
         $request->merge(['cohorte_id' => $cohorte_id, 'role' => 'apprenant']);
         return $this->store($request);
     }
@@ -265,7 +265,7 @@ class UserController extends Controller
     {
         $prefixes = [
             'admin' => 'AD',
-            'employe' => 'EM',
+            'employe' => 'EMP',
             'apprenant' => 'APP',
             'vigile' => 'VI',
         ];

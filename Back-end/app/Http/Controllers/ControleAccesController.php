@@ -56,17 +56,17 @@ class ControleAccesController extends Controller
     
             // Vérifier si l'utilisateur a déjà un Check-In pour aujourd'hui
             $checkInExist = ControleAcces::where('userId', $validatedData['userId'])
-                                         ->where('date', $heureEnregistree->format('Y-m-d'))
-                                         ->where('type', 'Check-In')
-                                         ->first();
+                                        ->where('date', $heureEnregistree->format('Y-m-d'))
+                                        ->where('type', 'Check-In')
+                                        ->first();
     
             // Si un Check-In existe, on enregistre normalement le Check-Out
             if ($checkInExist) {
                 // Vérifier s'il existe déjà un Check-Out pour cet utilisateur et cette journée
                 $checkOutExist = ControleAcces::where('userId', $validatedData['userId'])
-                                              ->where('date', $heureEnregistree->format('Y-m-d'))
-                                              ->where('type', 'Check-Out')
-                                              ->first();
+                                            ->where('date', $heureEnregistree->format('Y-m-d'))
+                                            ->where('type', 'Check-Out')
+                                            ->first();
     
                 if ($checkOutExist) {
                     // Mise à jour du Check-Out existant
