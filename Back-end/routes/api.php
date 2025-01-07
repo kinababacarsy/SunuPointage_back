@@ -71,14 +71,7 @@ Route::get('/user', function (Request $request) {
 
 
 
-// Routes pour la gestion des présences
-Route::prefix('attendances')->group(function () {
-    Route::get('/', [AttendanceController::class, 'getAttendanceList']); //liste de presences
-    Route::get('/history', [AttendanceController::class, 'getAttendanceHistory']); //historique
-    Route::get('/daily-report', [AttendanceController::class, 'getDailyReport']); //rapport du jour
-    Route::post('/{id}/validate', [AttendanceController::class, 'validateAttendance']); //validé présence
-    Route::put('/{id}', [AttendanceController::class, 'updateAttendance']); //modifier présence
-});
+
 
 
 /*<?php
