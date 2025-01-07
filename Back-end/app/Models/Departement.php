@@ -25,7 +25,7 @@ class Departement extends Model
     // Relation avec les utilisateurs
     public function users()
     {
-        return $this->hasMany(Users::class, 'departement_id');
+        return $this->hasMany(User::class, 'departement_id');
     }
 
     // Méthode pour obtenir le nombre d'employés

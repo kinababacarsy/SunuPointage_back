@@ -25,7 +25,7 @@ class Cohorte extends Model
     // Relation avec les utilisateurs
     public function users()
     {
-        return $this->hasMany(Users::class, 'cohorte_id');
+        return $this->hasMany(User::class, 'cohorte_id');
     }
 
     // Méthode pour obtenir le nombre d'apprenants
