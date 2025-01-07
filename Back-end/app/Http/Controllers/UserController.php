@@ -288,4 +288,41 @@ public function Count()
     return response()->json($count);
 }
 
+// liste des presences
+
+public function getUserPresences()
+{
+    $users = Users::select('matricule', 'prenom', 'nom')
+                   ->get();
+
+    return response()->json($users);
+}
+
+
+// historique des presences
+
+
+// UserController.php
+
+public function getUserHistorique()
+{
+    // Supposons que vous avez un champ 'status' dans la collection 'users' qui stocke les historiques des présences
+    $historique = Users::select('status')
+                   ->groupBy('status')
+                   ->selectRaw('count(*) as count')
+                   ->get()
+                   ->map(function ($item) {
+                       return [
+                           'status' => $item->status,
+                           'count' => $item->count
+                       ];
+                   });
+
+    return response()->json($historique);
+}
+
+
+
+
+
 }

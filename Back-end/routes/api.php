@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DepartementController;
 use App\Http\Controllers\CohorteController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AttendanceController;
 
 // Routes pour les départements
 Route::get('departements', [DepartementController::class, 'list']);
@@ -30,6 +31,11 @@ Route::put('maj/users/{id}', [UserController::class, 'update']);
 Route::delete('sup/users/{id}', [UserController::class, 'delete']);
 Route::get('/users/count', [UserController::class, 'count']);
 Route::get('/users/count/{role}', [UserController::class, 'countByRole']);
+
+Route::get('users/presences', [UserController::class, 'getUserPresences']); //liste de presences
+Route::get('users/historique', [UserController::class, 'getUserHistorique']); //historique
+
+
 
 
 
@@ -62,6 +68,18 @@ Route::post('cohortes/{cohorte_id}/ajout/users', [UserController::class, 'create
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
+
+
+
+// Routes pour la gestion des présences
+Route::prefix('attendances')->group(function () {
+    Route::get('/', [AttendanceController::class, 'getAttendanceList']); //liste de presences
+    Route::get('/history', [AttendanceController::class, 'getAttendanceHistory']); //historique
+    Route::get('/daily-report', [AttendanceController::class, 'getDailyReport']); //rapport du jour
+    Route::post('/{id}/validate', [AttendanceController::class, 'validateAttendance']); //validé présence
+    Route::put('/{id}', [AttendanceController::class, 'updateAttendance']); //modifier présence
+});
+
 
 /*<?php
 
