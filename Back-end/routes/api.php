@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ControleAccesController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ResetPasswordController;
 
 Route::prefix('user')->group(function () {
     Route::post('/', [UserController::class, 'store']); // Créer un utilisateur
@@ -19,15 +21,17 @@ Route::post('login', [AuthController::class, 'login']); // Route pour la connexi
 // Route pour la déconnexion (révocation du token)
 Route::post('logout', [AuthController::class, 'logout']); // Route pour la déconnexion
 
-
 // Routes pour la gestion des contrôles d'accès (pointages Check-In, Check-Out)
-Route::prefix('controle-acces')->group(function () {
-    Route::post('/', [ControleAccesController::class, 'store']); // Enregistrer un pointage (Check-In / Check-Out)
-    Route::get('/{userId}', [ControleAccesController::class, 'show']); // Récupérer les pointages d'un utilisateur
-    Route::get('/all', [ControleAccesController::class, 'getAll']); // Récupérer tous les pointages
-    Route::delete('/{id}', [ControleAccesController::class, 'destroy']); // Supprimer un pointage
-});
+Route::post('/controle-acces', [ControleAccesController::class, 'store']); // Enregistrer un pointage (Check-In / Check-Out)
+Route::get('/controle-acces', [ControleAccesController::class, 'index']); // Lister tous les pointages
+Route::get('/controle-acces/{id}', [ControleAccesController::class, 'show']); // Récupérer un pointage spécifique par ID
+Route::get('/controle-acces/pointages/{cardID}', [ControleAccesController::class, 'getPointagesByCardId']); // Récupérer les pointages par cardID
 
+// Routes pour la réinitialisation de mot de passe
+Route::post('password/email', [ForgotPasswordController::class, 'forgotPassword'])->name('password.email');
+Route::post('password/reset', [ForgotPasswordController::class, 'resetPassword'])->name('password.reset');
+
+// Test de connexion à la base de données MongoDB
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
