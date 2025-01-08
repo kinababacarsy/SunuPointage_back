@@ -4,7 +4,6 @@ namespace App\Models;
 use MongoDB\Laravel\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-
 class Cohorte extends Model
 
 {
@@ -35,7 +34,7 @@ class Cohorte extends Model
     // Relation avec les utilisateurs (un Cohorte a plusieurs Users)
     public function users()
     {
-        return $this->hasMany(Users::class, 'cohorte_id'); // Relation avec 'cohorte_id'
+        return $this->hasMany(User::class, 'cohorte_id');
     }
 
     // Méthode pour obtenir le nombre d'apprenants

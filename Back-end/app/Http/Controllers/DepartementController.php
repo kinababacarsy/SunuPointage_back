@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Departement;
 use App\Models\Users;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class DepartementController extends Controller
 {
@@ -27,17 +28,28 @@ class DepartementController extends Controller
     /**
      * Créer un département
      */
+    /**
+     * Créer un département
+     */
     public function create(Request $request)
     {
-        $request->validate([
-            'nom_departement' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+        try {
+            $request->validate([
+                'nom_departement' => 'required|string|max:255|unique:departements,nom_departement',
+                'description' => 'nullable|string',
+            ]);
 
-        // Créer le département
-        $departement = Departement::create($request->all());
+            // Créer le département
+            $departement = Departement::create($request->all());
 
-        return response()->json($departement, 201);
+            return response()->json($departement, 201);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => [
+                    'nom_departement' => ['Le nom du département est déjà pris.'],
+                ],
+            ], 422);
+        }
     }
 
     /**
@@ -59,16 +71,24 @@ class DepartementController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'nom_departement' => 'sometimes|required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+        try {
+            $request->validate([
+                'nom_departement' => 'sometimes|required|string|max:255|unique:departements,nom_departement,' . $id,
+                'description' => 'nullable|string',
+            ]);
 
-        // Mettre à jour le département
-        $departement = Departement::findOrFail($id);
-        $departement->update($request->all());
+            // Mettre à jour le département
+            $departement = Departement::findOrFail($id);
+            $departement->update($request->all());
 
-        return response()->json($departement, 200);
+            return response()->json($departement, 200);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'errors' => [
+                    'nom_departement' => ['Le nom du département est déjà pris.'],
+                ],
+            ], 422);
+        }
     }
 
     /**
@@ -82,7 +102,8 @@ class DepartementController extends Controller
 
         return response()->json(null, 204);
     }
-/**
+
+    /**
      * Récupérer le nombre total de départements
      */
     public function count()
@@ -92,6 +113,4 @@ class DepartementController extends Controller
 
         return response()->json(['total_departements' => $totalDepartements]);
     }
-
-
 }

@@ -6,9 +6,6 @@ use MongoDB\Laravel\Eloquent\Model;
 
 class ControleAcces extends Model
 {
-    //
-
-
     protected $connection = 'mongodb';
     protected $collection = 'controle_acces';
 
@@ -21,5 +18,10 @@ class ControleAcces extends Model
         'heureEntreePrevue',
         'heureDescentePrevue',
         'etat'
+    ];
+
+    // Définir la valeur par défaut pour le statut
+    protected $attributes = [
+        'statut' => 'En attente', // Valeur par défaut
     ];
 }

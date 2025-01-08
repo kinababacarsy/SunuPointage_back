@@ -3,16 +3,20 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
         "laravel/framework": "^11.31",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^2.9",
+        "league/csv": "^9.20",
         "mongodb/laravel-mongodb": "^5.1",
         "mongodb/mongodb": "^1.20",
-        "league/csv": "^9.20"
+        "tymon/jwt-auth": "^2.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
@@ -24,8 +28,6 @@
         "phpunit/phpunit": "^11.0.1",
         "guzzlehttp/uri-template": "^1.0"
     },
-
-
     "autoload": {
         "psr-4": {
             "App\\": "app/",
