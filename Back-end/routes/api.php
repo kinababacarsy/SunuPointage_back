@@ -47,7 +47,7 @@ Route::put('maj/users/{id}', [UserController::class, 'update']); // Mettre à jo
 Route::delete('sup/users/{id}', [UserController::class, 'destroy']); // Supprimer un utilisateur
 
 // Routes pour ajouter un utilisateur à partir d'un département
-Route::post('departements/{departement_id}/ajout/users', [UserController::class, 'createFromDepartement']); // Créer un utilisateur à partir d'un département
+Route::post('/departements/{departement_id}/ajout/users', [UserController::class, 'createFromDepartement']); // Créer un utilisateur à partir d'un département
 // Route pour importer des utilisateurs à partir d'un département
 Route::post('/departements/{departement_id}/import-users', [UserController::class, 'importCSVForDepartement']); // Importer des utilisateurs à partir d'un département
 

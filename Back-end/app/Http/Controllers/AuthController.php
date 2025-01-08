@@ -37,10 +37,18 @@ public function login(Request $request)
     // Authentifier l'utilisateur avec JWT
     $token = JWTAuth::fromUser($user);
 
-    // Retourner le token JWT
-    return response()->json(['token' => $token], 200);
+    // Retourner le token JWT, le rôle et les informations de l'utilisateur
+    return response()->json([
+        'token' => $token,
+        
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+        ],
+    ], 200);
 }
-
 
 public function logout()
 {
@@ -65,6 +73,20 @@ public function logout()
     }
 }
 
+
+public function getAuthUser(Request $request)
+{
+    $user = JWTAuth::parseToken()->authenticate();
+
+    return response()->json([
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+        ],
+    ]);
+}
 
 }
 

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Departement;
 use App\Models\Cohorte;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -34,33 +34,33 @@ class UserController extends Controller
     // Créer un utilisateur
     public function store(Request $request)
     {
+        // Valider les données
         $validatedData = $this->validateUserData($request);
-
+    
         // Générer le matricule
         $validatedData['matricule'] = $this->generateMatricule($validatedData['role']);
-
+    
         // Gestion du mot de passe
         if (in_array($validatedData['role'], ['admin', 'vigile'])) {
-            // Si le rôle est admin ou vigile, un mot de passe est requis
             if (empty($validatedData['mot_de_passe'])) {
                 return response()->json(['message' => 'Un mot de passe est requis pour les rôles admin et vigile'], 400);
             }
             $validatedData['mot_de_passe'] = Hash::make($validatedData['mot_de_passe']);
         } else {
-            // Pour les autres rôles, le mot de passe n'est pas requis
             $validatedData['mot_de_passe'] = null;
         }
-
+    
         // Photo par défaut si non fournie
         if (empty($validatedData['photo'])) {
             $validatedData['photo'] = 'images/inconnu.png';
         }
-
+    
         // Statut par défaut si non fourni
         if (!isset($validatedData['status'])) {
             $validatedData['status'] = 'Actif';
         }
-
+    
+        // Créer l'utilisateur avec la méthode create
         try {
             $user = User::create($validatedData);
             return response()->json([
@@ -233,7 +233,7 @@ class UserController extends Controller
     }
 
     // Créer un utilisateur à partir d'un département
-    private function createFromDepartement(Request $request, $departement_id)
+    public function createFromDepartement(Request $request, $departement_id)
     {
         $departement = Departement::find($departement_id);
 
@@ -241,13 +241,14 @@ class UserController extends Controller
             return response()->json(['message' => 'Département non trouvé'], 404);
         }
 
-        // Définir le rôle comme "employe" pour les utilisateurs créés via un département
-        $request->merge(['departement_id' => $departement_id, 'role' => 'employe']);
+        // Définir le rôle comme "employe" par défaut, sauf si spécifié autrement
+        $role = $request->role ?? 'employe';
+        $request->merge(['departement_id' => $departement_id, 'role' => $role]);
         return $this->store($request);
     }
 
     // Créer un utilisateur à partir d'une cohorte
-    private function createFromCohorte(Request $request, $cohorte_id)
+    public function createFromCohorte(Request $request, $cohorte_id)
     {
         $cohorte = Cohorte::find($cohorte_id);
 
@@ -265,9 +266,9 @@ class UserController extends Controller
     {
         $prefixes = [
             'admin' => 'AD',
+            'vigile' => 'VI',
             'employe' => 'EMP',
             'apprenant' => 'APP',
-            'vigile' => 'VI',
         ];
 
         $prefix = $prefixes[$role];
@@ -289,19 +290,19 @@ class UserController extends Controller
             'adresse' => 'required|string',
             'role' => 'required|string|in:admin,vigile,employe,apprenant',
             'photo' => 'nullable|string',
-            'departement_id' => 'nullable|string',
-            'cohorte_id' => 'nullable|string',
+            'departement_id' => 'nullable|string|exists:departements,_id',
+            'cohorte_id' => 'nullable|string|exists:cohortes,_id',
             'cardID' => 'nullable|string',
             'status' => 'sometimes|string|in:Actif,Bloque,Supprime',
         ];
-
+    
         // Ajouter la règle pour le mot de passe uniquement pour admin et vigile
         if (in_array($request->role, ['admin', 'vigile'])) {
-            $rules['mot_de_passe'] = 'required|string|min:8';
+            $rules['mot_de_passe'] = 'required|string|min:8|regex:/^(?=.*[A-Z])(?=.*\d).+$/';
         } else {
             $rules['mot_de_passe'] = 'nullable|string';
         }
-
+    
         return $request->validate($rules);
     }
 }
