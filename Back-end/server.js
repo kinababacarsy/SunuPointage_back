@@ -10,7 +10,10 @@ import ControleAcces from './models/ControleAcces.js';
 // MongoDB connection
 mongoose.connect('mongodb://localhost:27017/sunupointage')
     .then(() => console.log('Connected to MongoDB database'))
-    .catch(err => console.error('MongoDB connection error:', err));
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1); // Quitte le processus si la connexion échoue
+    });
 
 const app = express();
 const server = http.createServer(app);
@@ -33,6 +36,8 @@ const port = new SerialPort({
 
 // Create parser instance using ReadlineParser
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
+
+
 
 // Gestion des erreurs du port
 port.on('error', (err) => {
@@ -73,6 +78,7 @@ parser.on('data', async(data) => {
                 console.log(`Statut: ${user.status}`);
                 console.log(`Cohorte ID: ${user.cohorte_id}`);
                 console.log(`Département ID: ${user.departement_id}`);
+                console.log(`Photo: ${user.photo}`); // Affiche le chemin de la photo
 
                 // Émettre les données utilisateur via WebSocket
                 io.emit('rfid-card', {
@@ -83,9 +89,94 @@ parser.on('data', async(data) => {
                         nom: user.nom,
                         prenom: user.prenom,
                         statut: user.status,
-                        cardID: user.cardID
+                        cardID: user.cardID,
+                        photo: user.photo, // Inclure la photo dans les données envoyées
                     }
                 });
+
+                // Gérer le pointage Check-In / Check-Out
+                const currentDate = new Date();
+                const dateStr = currentDate.toISOString().split('T')[0]; // Date du jour
+                const hourStr = currentDate.toISOString().split('T')[1].substring(0, 5); // Heure du jour
+
+                // Vérification s'il existe un Check-In pour l'utilisateur et la date actuelle
+                const existingCheckIn = await ControleAcces.findOne({
+                    userId: user.id,
+                    date: dateStr,
+                    type: 'Check-In',
+                });
+
+                if (!existingCheckIn) {
+                    // Si aucun Check-In n'existe, créer un nouveau Check-In
+                    const controleCheckIn = new ControleAcces({
+                        userId: user.id,
+                        date: dateStr,
+                        heure: hourStr,
+                        type: 'Check-In',
+                        statut: 'En attente',
+                        heureEntreePrevue: '09:00',
+                        heureDescentePrevue: '17:00',
+                        etat: 'Présent', // Définir comme "Présent" si c'est avant 17h
+                    });
+                    await controleCheckIn.save(); // Sauvegarde Check-In
+
+                    console.log('Check-In enregistré pour:', user.matricule);
+
+                    // Créer le Check-Out (par défaut, sans heure pour l'instant)
+                    const controleCheckOut = new ControleAcces({
+                        userId: user.id,
+                        date: dateStr,
+                        type: 'Check-Out',
+                        statut: 'En attente',
+                        heureEntreePrevue: '09:00',
+                        heureDescentePrevue: '17:00',
+                        etat: 'Absent',
+                    });
+                    await controleCheckOut.save(); // Sauvegarde Check-Out
+
+                    console.log('Check-Out enregistré pour:', user.matricule);
+                } else {
+                    console.log('Check-In déjà enregistré pour cet utilisateur aujourd\'hui');
+                    // Afficher le Check-In existant avec la date et l'heure
+                    console.log('Check-In existant :');
+                    console.log('Date Check-In:', existingCheckIn.date);
+                    console.log('Heure Check-In:', existingCheckIn.heure);
+                    console.log('Statut Check-In:', existingCheckIn.statut);
+                    console.log('État Check-In:', existingCheckIn.etat);
+
+                    // Si un Check-In existe déjà, créer ou mettre à jour le Check-Out
+                    const existingCheckOut = await ControleAcces.findOne({
+                        userId: user.id,
+                        date: dateStr,
+                        type: 'Check-Out',
+                    });
+
+                    if (existingCheckOut) {
+                        // Mettre à jour le Check-Out avec l'heure actuelle à chaque scan
+                        existingCheckOut.heure = hourStr;
+                        existingCheckOut.statut = 'En attente'; // Mettre à jour le statut
+                        existingCheckOut.etat = hourStr < '17:00' ? 'Présent' : 'Absent'; // Définir l'état
+                        await existingCheckOut.save();
+
+                        console.log('Check-Out mis à jour pour:', user.matricule);
+                    } else {
+                        console.log('Aucun Check-Out trouvé pour aujourd\'hui.');
+                        // Si aucun Check-Out n'existe, créer un nouveau Check-Out
+                        const controleCheckOut = new ControleAcces({
+                            userId: user.id,
+                            date: dateStr,
+                            type: 'Check-Out',
+                            statut: 'En attente',
+                            heureEntreePrevue: '09:00',
+                            heureDescentePrevue: '17:00',
+                            etat: 'Absent', // Initialement "Absent"
+                            heure: hourStr,
+                        });
+                        await controleCheckOut.save();
+
+                        console.log('Nouveau Check-Out émis avec succès.');
+                    }
+                }
             } else {
                 console.log('Utilisateur non trouvé');
                 io.emit('rfid-card', {
@@ -105,83 +196,9 @@ parser.on('data', async(data) => {
     }
 });
 
-
 // WebSocket connection handling
 io.on('connection', (socket) => {
     console.log('A user connected');
-
-    // Fetch user info from the database
-    socket.on('request-user-info', async(cardID) => {
-        try {
-            const user = await User.findOne({ cardID: cardID });
-            if (user) {
-                socket.emit('user-data', {
-                    type: 'user-info',
-                    found: true,
-                    userData: {
-                        matricule: user.matricule,
-                        nom: user.nom,
-                        prenom: user.prenom,
-                        statut: user.status,
-                        cardID: user.cardID
-                    }
-                });
-            } else {
-                socket.emit('user-data', {
-                    type: 'user-info',
-                    found: false,
-                    message: 'Utilisateur non trouvé'
-                });
-            }
-        } catch (error) {
-            console.error('Error fetching user:', error);
-            socket.emit('user-data', {
-                type: 'user-info',
-                found: false,
-                message: 'Erreur lors de la recherche'
-            });
-        }
-    });
-
-    // Handle checkin event
-    socket.on('checkin', async(data) => {
-        const { cardID } = data;
-        try {
-            const user = await User.findOne({ cardID: cardID });
-            if (user) {
-                // Ne pas mettre à jour premierPointage car il n'existe pas dans le modèle
-                const controle = new ControleAcces({
-                    userId: user.id,
-                    status: 'success',
-                    time: new Date()
-                });
-                await controle.save();
-
-                io.emit('checkin-status', {
-                    type: 'checkin-status',
-                    status: 'success',
-                    userData: {
-                        matricule: user.matricule,
-                        nom: user.nom,
-                        prenom: user.prenom
-                    }
-                });
-            } else {
-                io.emit('checkin-status', {
-                    type: 'checkin-status',
-                    status: 'failure',
-                    message: 'Utilisateur non trouvé'
-                });
-            }
-        } catch (error) {
-            console.error('Check-in error:', error);
-            io.emit('checkin-status', {
-                type: 'checkin-status',
-                status: 'error',
-                message: 'Erreur lors du check-in'
-            });
-        }
-    });
 
     socket.on('disconnect', () => {
         console.log('User disconnected');
@@ -195,6 +212,32 @@ setInterval(() => {
         port.open();
     }
 }, 5000);
+
+// Ajouter la route pour récupérer les pointages par cardID
+app.get('/controle-acces/pointages/:cardID', async(req, res) => {
+    const { cardID } = req.params;
+
+    try {
+        // Recherche l'utilisateur par cardID
+        const user = await User.findOne({ cardID });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        // Recherche les pointages de l'utilisateur
+        const pointages = await ControleAcces.find({ userId: user.id });
+
+        if (pointages.length === 0) {
+            return res.status(404).json({ message: 'Aucun pointage trouvé pour cet utilisateur' });
+        }
+
+        return res.json(pointages);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des pointages:', error);
+        return res.status(500).json({ message: 'Erreur serveur' });
+    }
+});
 
 // Start server
 server.listen(3000, () => {
