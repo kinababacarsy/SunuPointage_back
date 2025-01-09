@@ -46,6 +46,7 @@ public function login(Request $request)
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,
+            'photo' => $user->photo,
         ],
     ], 200);
 }
@@ -84,6 +85,7 @@ public function getAuthUser(Request $request)
             'name' => $user->name,
             'email' => $user->email,
             'role' => $user->role,
+            'photo' => $user->photo,
         ],
     ]);
 }

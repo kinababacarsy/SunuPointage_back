@@ -79,19 +79,35 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::find($id);
-
+    
         if (!$user) {
             return response()->json(['message' => 'Utilisateur non trouvé'], 404);
         }
-
-        $validatedData = $this->validateUserData($request, $id);
-
+    
+        // Valider uniquement les champs fournis dans la requête
+        $validatedData = $request->validate([
+            'nom' => 'sometimes|string',
+            'prenom' => 'sometimes|string',
+            'telephone' => 'sometimes|string|digits:9|regex:/^[0-9]+$/',
+            'email' => 'sometimes|email|unique:users,email,' . $id,
+            'adresse' => 'sometimes|string',
+            'role' => 'sometimes|string|in:admin,vigile,employe,apprenant',
+            'photo' => 'sometimes|string',
+            'departement_id' => 'sometimes|string|exists:departements,_id',
+            'cohorte_id' => 'sometimes|string|exists:cohortes,_id',
+            'cardID' => 'sometimes|string',
+            'status' => 'sometimes|string|in:Actif,Bloque,Supprime',
+            'mot_de_passe' => 'sometimes|string|min:8|regex:/^(?=.*[A-Z])(?=.*\d).+$/',
+        ]);
+    
         // Hash le mot de passe si modifié
         if (isset($validatedData['mot_de_passe'])) {
             $validatedData['mot_de_passe'] = Hash::make($validatedData['mot_de_passe']);
         }
-
-        $user->update($validatedData);
+    
+        // Mettre à jour uniquement les champs fournis
+        $user->fill($validatedData)->save();
+    
         return response()->json($user, 200);
     }
 
