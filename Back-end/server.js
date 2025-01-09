@@ -318,6 +318,32 @@ setInterval(() => {
     }
 }, 5000);
 
+// Ajouter la route pour récupérer les pointages par cardID
+app.get('/controle-acces/pointages/:cardID', async(req, res) => {
+    const { cardID } = req.params;
+
+    try {
+        // Recherche l'utilisateur par cardID
+        const user = await User.findOne({ cardID });
+
+        if (!user) {
+            return res.status(404).json({ message: 'Utilisateur non trouvé' });
+        }
+
+        // Recherche les pointages de l'utilisateur
+        const pointages = await ControleAcces.find({ userId: user.id });
+
+        if (pointages.length === 0) {
+            return res.status(404).json({ message: 'Aucun pointage trouvé pour cet utilisateur' });
+        }
+
+        return res.json(pointages);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des pointages:', error);
+        return res.status(500).json({ message: 'Erreur serveur' });
+    }
+});
+
 // Start server
 server.listen(3000, () => {
     console.log("WebSocket server listening on port 3000");
