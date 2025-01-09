@@ -19,7 +19,7 @@ class DepartementController extends Controller
 
         // Ajouter le nombre d'employés à chaque département
         $departements->each(function ($departement) {
-            $departement->nbre_employe = $departement->users->where('role', 'employe')->count();
+            $departement->nbre_employe = $departement->users->count();
           
         });
 
