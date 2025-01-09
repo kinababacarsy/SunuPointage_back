@@ -19,6 +19,33 @@ class UserController extends Controller
         return response()->json($users, 200);
     }
 
+    // Validation des données de l'utilisateur
+    private function validateUserData(Request $request, $id = null)
+    {
+        $rules = [
+            'nom' => 'required|string',
+            'prenom' => 'required|string',
+            'telephone' => 'required|string|digits:9|regex:/^[0-9]+$/',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'adresse' => 'required|string',
+            'role' => 'required|string|in:admin,vigile,employe,apprenant',
+            'photo' => 'nullable|string',
+            'departement_id' => 'nullable|string|exists:departements,_id',
+            'cohorte_id' => 'nullable|string|exists:cohortes,_id',
+            'cardID' => 'nullable|string',
+            'status' => 'sometimes|string|in:Actif,Bloque,Supprime',
+        ];
+    
+        // Ajouter la règle pour le mot de passe uniquement pour admin et vigile
+        if (in_array($request->role, ['admin', 'vigile'])) {
+            $rules['mot_de_passe'] = 'required|string|min:8|regex:/^(?=.*[A-Z])(?=.*\d).+$/';
+        } else {
+            $rules['mot_de_passe'] = 'nullable|string';
+        }
+    
+        return $request->validate($rules);
+    }
+
     // Récupérer un utilisateur par ID
     public function show($id)
     {
@@ -296,29 +323,4 @@ class UserController extends Controller
     }
 
     // Validation des données de l'utilisateur
-    private function validateUserData(Request $request, $id = null)
-    {
-        $rules = [
-            'nom' => 'required|string',
-            'prenom' => 'required|string',
-            'telephone' => 'required|string|digits:9|regex:/^[0-9]+$/',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'adresse' => 'required|string',
-            'role' => 'required|string|in:admin,vigile,employe,apprenant',
-            'photo' => 'nullable|string',
-            'departement_id' => 'nullable|string|exists:departements,_id',
-            'cohorte_id' => 'nullable|string|exists:cohortes,_id',
-            'cardID' => 'nullable|string',
-            'status' => 'sometimes|string|in:Actif,Bloque,Supprime',
-        ];
-    
-        // Ajouter la règle pour le mot de passe uniquement pour admin et vigile
-        if (in_array($request->role, ['admin', 'vigile'])) {
-            $rules['mot_de_passe'] = 'required|string|min:8|regex:/^(?=.*[A-Z])(?=.*\d).+$/';
-        } else {
-            $rules['mot_de_passe'] = 'nullable|string';
-        }
-    
-        return $request->validate($rules);
-    }
 }
