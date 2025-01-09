@@ -15,6 +15,11 @@ Route::prefix('user')->group(function () {
     Route::delete('/{id}', [UserController::class, 'destroy']); // Supprimer un utilisateur
 });
 
+
+// Route pour récupérer les informations du vigile connecté
+Route::get('user/vigile-info', [UserController::class, 'getVigileInfo']);
+
+
 // Route pour la connexion
 Route::post('login', [AuthController::class, 'login']); // Route pour la connexion
 

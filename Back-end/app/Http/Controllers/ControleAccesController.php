@@ -27,7 +27,7 @@ class ControleAccesController extends Controller
         $dateDuJour = Carbon::now()->format('Y-m-d');
 
         // Rechercher un Check-In existant pour cet utilisateur et cette date
-        $checkInExistant = ControleAcces::where('userId', $user->_id) // Utilisation de $user->_id pour MongoDB
+        $checkInExistant = ControleAcces::where('userId', $user->_id)
             ->whereDate('date', $dateDuJour)
             ->where('type', 'Check-In') // Vérifier si un Check-In existe déjà
             ->first();
@@ -35,7 +35,7 @@ class ControleAccesController extends Controller
         // Si un Check-In existe déjà
         if ($checkInExistant) {
             // Vérifier s'il existe un Check-Out
-            $checkOutExistant = ControleAcces::where('userId', $user->_id) // Utilisation de $user->_id pour MongoDB
+            $checkOutExistant = ControleAcces::where('userId', $user->_id)
                 ->whereDate('date', $dateDuJour)
                 ->where('type', 'Check-Out')
                 ->first();
@@ -44,7 +44,7 @@ class ControleAccesController extends Controller
             if (!$checkOutExistant) {
                 // Créer un nouveau Check-Out
                 $checkOut = new ControleAcces([
-                    'userId' => $user->_id, // Lier avec l'ID de l'utilisateur (MongoDB)
+                    'userId' => $user->_id,
                     'date' => $dateDuJour,
                     'heure' => Carbon::now()->format('H:i:s'), // L'heure de Check-Out
                     'type' => 'Check-Out', // Type de pointage
@@ -75,7 +75,7 @@ class ControleAccesController extends Controller
         else {
             // Créer un nouveau Check-In
             $checkIn = new ControleAcces([
-                'userId' => $user->_id, // Lier avec l'ID de l'utilisateur (MongoDB)
+                'userId' => $user->_id,
                 'date' => $dateDuJour,
                 'heure' => Carbon::now()->format('H:i:s'), // L'heure de Check-In
                 'type' => 'Check-In',
@@ -110,24 +110,24 @@ class ControleAccesController extends Controller
         }
 
         return response()->json($controleAcces, 200);
-    }public function getPointagesByCardId($cardID)
+    }
+
+    public function getPointagesByCardId($cardID)
     {
         // Trouver l'utilisateur basé sur la cardID
         $user = User::where('cardID', $cardID)->first();
-    
+
         if (!$user) {
             return response()->json(['message' => 'Utilisateur non trouvé'], 404);
         }
-    
+
         // Récupérer tous les pointages pour cet utilisateur basé sur son userId
-        $pointages = ControleAcces::where('userId', $user->_id)->get(); 
-    
+        $pointages = ControleAcces::where('userId', $user->_id)->get();
+
         if ($pointages->isEmpty()) {
             return response()->json(['message' => 'Aucun pointage trouvé pour cet utilisateur.'], 404);
         }
-    
+
         return response()->json($pointages, 200);
     }
-    
-    
 }

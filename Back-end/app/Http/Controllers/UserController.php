@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+
 
 class UserController extends Controller
 {
@@ -148,4 +150,27 @@ class UserController extends Controller
         $user->delete(); // Supprimer l'utilisateur
         return response()->json(['message' => 'Utilisateur supprimé'], 200);
     }
+    public function getVigileInfo(Request $request)
+    {
+        $user = $request->user();
+        
+        // Ajoutez un log pour vérifier si l'utilisateur est récupéré correctement
+        Log::info('Utilisateur authentifié:', ['user' => $user]);
+    
+        if (!$user) {
+            return response()->json(['message' => 'Utilisateur non trouvé'], 404);
+        }
+    
+        if ($user->role !== 'vigile') {
+            return response()->json(['error' => 'Accès refusé'], 403);
+        }
+    
+        return response()->json([
+            'nom' => $user->nom,
+            'prenom' => $user->prenom,
+            'email' => $user->email,
+        ]);
+    }
+    
+
 }
