@@ -7,6 +7,11 @@ use App\Http\Controllers\CohorteController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AttendanceController;
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ControleAccesController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\ResetPasswordController;
+
 // Routes pour les départements
 Route::get('departements', [DepartementController::class, 'list']);
 Route::post('ajout/departements', [DepartementController::class, 'create']);
@@ -33,7 +38,7 @@ Route::get('/users/count', [UserController::class, 'count']); //compte le nombre
 Route::get('/users/count/{role}', [UserController::class, 'countByRole']); //compte le nombre d'utilisateurs par role
 
 Route::get('users/presences', [UserController::class, 'getUserPresences']); //liste de presences
-Route::get('users/historique', [UserController::class, 'getUserHistorique']); //historique des historiques
+Route::get('users/historique', [UserController::class, 'getUserHistorique']); //historique des pointages
 // Dans routes/api.php
 Route::get('/users/presences/date/{date}', [UserController::class, 'getPresencesByDate']);
 
@@ -81,10 +86,7 @@ Route::get('/user', function (Request $request) {
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;*/
 
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ControleAccesController;
-use App\Http\Controllers\ForgotPasswordController;
-use App\Http\Controllers\ResetPasswordController;
+
 
 Route::prefix('user')->group(function () {
     Route::post('/', [UserController::class, 'store']); // Créer un utilisateur
@@ -131,6 +133,11 @@ Route::post('ajout/users', [UserController::class, 'store']); // Créer un utili
 Route::get('voir/users/{id}', [UserController::class, 'show']); // Voir un utilisateur spécifique
 Route::put('maj/users/{id}', [UserController::class, 'update']); // Mettre à jour un utilisateur
 Route::delete('sup/users/{id}', [UserController::class, 'destroy']); // Supprimer un utilisateur
+
+Route::get('/users/{id}', [UserController::class, 'show']); //infos utilisateur
+Route::put('/users/{id}/add-card', [UserController::class, 'addCardId']); // Ajouter un cardID à un utilisateur
+
+
 
 // Routes pour ajouter un utilisateur à partir d'un département
 Route::post('departements/{departement_id}/ajout/users', [UserController::class, 'createFromDepartement']); // Créer un utilisateur à partir d'un département

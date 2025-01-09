@@ -74,6 +74,31 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+     // Ajouter un cardID à un utilisateur
+     public function addCardId(Request $request, $id)
+     {
+         // Valider les données de la requête
+         $validatedData = $request->validate([
+             'cardID' => 'required|string',
+         ]);
+ 
+         // Récupérer l'utilisateur par son ID
+         $user = User::find($id);
+ 
+         if (!$user) {
+             return response()->json(['message' => 'Utilisateur non trouvé'], 404);
+         }
+ 
+         // Mettre à jour le cardID de l'utilisateur
+         $user->cardID = $validatedData['cardID'];
+         $user->save();
+ 
+         return response()->json([
+             'message' => 'CardID ajouté avec succès !',
+             'user' => $user,
+         ], 200);
+     }
     
 
     // Mettre à jour un utilisateur
@@ -319,7 +344,7 @@ class UserController extends Controller
 
 
 
-  
+  // compte les utilisateurs par leur role
 public function countByRole($role)
 {
     $count = User::where('role', $role)->count();
