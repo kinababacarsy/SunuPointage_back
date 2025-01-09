@@ -26,10 +26,10 @@ Route::post('login', [AuthController::class, 'login']); // Route pour la connexi
 // Route pour la déconnexion (révocation du token)
 Route::post('logout', [AuthController::class, 'logout']); // Route pour la déconnexion
 
-// Routes pour la gestion des contrôles d'accès (pointages Check-In, Check-Out)
-Route::post('/controle-acces', [ControleAccesController::class, 'store']); // Enregistrer un pointage (Check-In / Check-Out)
-Route::get('/controle-acces', [ControleAccesController::class, 'index']); // Lister tous les pointages
-Route::get('/controle-acces/{id}', [ControleAccesController::class, 'show']); // Récupérer un pointage spécifique par ID
+Route::post('/controle-acces', [ControleAccesController::class, 'store']);
+Route::get('/controle-acces', [ControleAccesController::class, 'index']);
+Route::get('/controle-acces/{id}', [ControleAccesController::class, 'show']);
+Route::get('/controle-acces/user/{userId}', [ControleAccesController::class, 'getPointagesByUserId']);
 Route::get('/controle-acces/pointages/{cardID}', [ControleAccesController::class, 'getPointagesByCardId']); // Récupérer les pointages par cardID
 
 // Routes pour la réinitialisation de mot de passe

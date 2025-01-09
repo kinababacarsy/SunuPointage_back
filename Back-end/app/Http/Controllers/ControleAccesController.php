@@ -13,11 +13,11 @@ class ControleAccesController extends Controller
     {
         // Validation des données reçues
         $validatedData = $request->validate([
-            'cardID' => 'required|string', // La cardID est obligatoire pour identifier l'utilisateur
+            'userId' => 'required|string', // Le userId est obligatoire pour identifier l'utilisateur
         ]);
 
-        // Trouver l'utilisateur basé sur la cardID
-        $user = User::where('cardID', $validatedData['cardID'])->first();
+        // Trouver l'utilisateur basé sur le userId
+        $user = User::where('_id', $validatedData['userId'])->first();
 
         if (!$user) {
             return response()->json(['message' => 'Utilisateur non trouvé'], 404);
@@ -60,8 +60,8 @@ class ControleAccesController extends Controller
                     'controleAcces' => $checkOut,
                 ], 201);
             } else {
-                // Si un Check-Out existe déjà, mettre à jour l'heure de descente
-                $checkOutExistant->heureDescentePrevue = Carbon::now()->format('H:i:s');
+                // Si un Check-Out existe déjà, mettre à jour l'heure de Check-Out
+                $checkOutExistant->heure = Carbon::now()->format('H:i:s');
                 $checkOutExistant->save();
 
                 return response()->json([
@@ -112,20 +112,25 @@ class ControleAccesController extends Controller
         return response()->json($controleAcces, 200);
     }
 
-    public function getPointagesByCardId($cardID)
+    public function getPointagesByUserId($userId)
     {
-        // Trouver l'utilisateur basé sur la cardID
-        $user = User::where('cardID', $cardID)->first();
+        // Trouver l'utilisateur basé sur le userId
+        $user = User::where('_id', $userId)->first();
 
         if (!$user) {
             return response()->json(['message' => 'Utilisateur non trouvé'], 404);
         }
 
-        // Récupérer tous les pointages pour cet utilisateur basé sur son userId
-        $pointages = ControleAcces::where('userId', $user->_id)->get();
+        // Récupérer la date d'aujourd'hui
+        $dateDuJour = Carbon::now()->format('Y-m-d');
+
+        // Récupérer tous les pointages pour cet utilisateur basé sur son userId et la date d'aujourd'hui
+        $pointages = ControleAcces::where('userId', $user->_id)
+            ->whereDate('date', $dateDuJour)
+            ->get();
 
         if ($pointages->isEmpty()) {
-            return response()->json(['message' => 'Aucun pointage trouvé pour cet utilisateur.'], 404);
+            return response()->json(['message' => 'Aucun pointage trouvé pour cet utilisateur aujourd\'hui.'], 404);
         }
 
         return response()->json($pointages, 200);
