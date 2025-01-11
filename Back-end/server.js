@@ -37,8 +37,6 @@ const port = new SerialPort({
 // Create parser instance using ReadlineParser
 const parser = port.pipe(new ReadlineParser({ delimiter: '\r\n' }));
 
-
-
 // Gestion des erreurs du port
 port.on('error', (err) => {
     console.error('Erreur port série:', err.message);
@@ -53,7 +51,6 @@ port.open((err) => {
     console.log('Port série ouvert avec succès');
 });
 
-// Gestion des données Arduino avec détection RFID améliorée
 parser.on('data', async(data) => {
     console.log('Arduino data:', data);
 
@@ -80,6 +77,31 @@ parser.on('data', async(data) => {
                 console.log(`Département ID: ${user.departement_id}`);
                 console.log(`Photo: ${user.photo}`); // Affiche le chemin de la photo
 
+                // Obtenir la date actuelle au format YYYY-MM-DD
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0]; // Date du jour, format: 'YYYY-MM-DD'
+
+                // Récupérer les pointages de l'utilisateur à la date actuelle
+                const pointages = await ControleAcces.find({ userId: user.id, date: formattedDate }).sort({ heure: 1 });
+
+                let premierPointage = null;
+                let dernierPointage = null;
+
+                // Vérifier s'il y a des pointages pour cette journée
+                if (pointages.length === 0) {
+                    console.log('Aucun pointage trouvé pour la date actuelle');
+                } else {
+                    // Récupérer le premier pointage de la journée (celui avec l'heure la plus tôt)
+                    premierPointage = pointages[0]; // Premier pointage de la journée
+
+                    // Récupérer le dernier pointage de la journée (celui avec l'heure la plus tard)
+                    dernierPointage = pointages[pointages.length - 1]; // Dernier pointage de la journée
+
+                    // Afficher les résultats
+                    console.log('Premier pointage de la journée :', premierPointage);
+                    console.log('Dernier pointage de la journée :', dernierPointage);
+                }
+
                 // Émettre les données utilisateur via WebSocket
                 io.emit('rfid-card', {
                     type: 'card-data',
@@ -91,6 +113,14 @@ parser.on('data', async(data) => {
                         statut: user.status,
                         cardID: user.cardID,
                         photo: user.photo, // Inclure la photo dans les données envoyées
+                        premierPointage: premierPointage ? {
+                            date: premierPointage.date,
+                            heure: premierPointage.heure
+                        } : null,
+                        dernierPointage: dernierPointage ? {
+                            date: dernierPointage.date,
+                            heure: dernierPointage.heure
+                        } : null
                     }
                 });
 
@@ -203,6 +233,14 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('User disconnected');
     });
+
+    socket.on('control-door', (data) => {
+        if (data.action === 'open') {
+            port.write('OPEN\n');
+        } else if (data.action === 'close') {
+            port.write('CLOSE\n');
+        }
+    });
 });
 
 // Vérification périodique de la connexion au port série
@@ -213,7 +251,13 @@ setInterval(() => {
     }
 }, 5000);
 
-// Ajouter la route pour récupérer les pointages par cardID
+
+function formatDate(date) {
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+    return new Date(date).toLocaleDateString('fr-FR', options); // Format français
+}
+
+
 app.get('/controle-acces/pointages/:cardID', async(req, res) => {
     const { cardID } = req.params;
 
@@ -226,20 +270,65 @@ app.get('/controle-acces/pointages/:cardID', async(req, res) => {
         }
 
         // Recherche les pointages de l'utilisateur
-        const pointages = await ControleAcces.find({ userId: user.id });
+        const pointages = await ControleAcces.find({ userId: user.id }).sort({ date: 1, heure: 1 });
 
         if (pointages.length === 0) {
             return res.status(404).json({ message: 'Aucun pointage trouvé pour cet utilisateur' });
         }
 
-        return res.json(pointages);
+        const premierPointage = pointages[0];
+        const dernierPointage = pointages[pointages.length - 1];
+
+        // Formater les dates avant de les renvoyer
+        const formattedPremierPointage = {
+            date: formatDate(premierPointage.date),
+            heure: premierPointage.heure
+        };
+
+        const formattedDernierPointage = {
+            date: formatDate(dernierPointage.date),
+            heure: dernierPointage.heure
+        };
+
+        return res.json({
+            premierPointage: formattedPremierPointage,
+            dernierPointage: formattedDernierPointage
+        });
     } catch (error) {
         console.error('Erreur lors de la récupération des pointages:', error);
         return res.status(500).json({ message: 'Erreur serveur' });
     }
 });
 
+
+// Méthode pour récupérer tous les pointages de la journée
+async function getPointagesOfTheDay() {
+    try {
+        const currentDate = new Date();
+        const dateStr = currentDate.toISOString().split('T')[0]; // Date du jour
+
+        const pointages = await ControleAcces.find({ date: dateStr }).sort({ heure: 1 });
+
+        return pointages;
+    } catch (error) {
+        console.error('Erreur lors de la récupération des pointages de la journée:', error);
+        throw error;
+    }
+}
+
+// Ajouter la route pour récupérer les pointages de la journée
+app.get('/api/pointages', async(req, res) => {
+    try {
+        const pointages = await getPointagesOfTheDay();
+        res.json(pointages);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des pointages:', error);
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+});
+
 // Start server
 server.listen(3000, () => {
     console.log('WebSocket server listening on port 3000');
+
 });

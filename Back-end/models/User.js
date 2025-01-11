@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs'; // Si tu veux gérer le cryptage des mots de passe (optionnel)
-import jwt from 'jsonwebtoken'; // Pour gérer le JWT
 
 // Schéma de l'utilisateur
 const userSchema = new mongoose.Schema({
