@@ -6,6 +6,7 @@ import { ReadlineParser } from '@serialport/parser-readline';
 import mongoose from 'mongoose';
 import User from './models/User.js';
 import ControleAcces from './models/ControleAcces.js';
+import bodyParser from 'body-parser'; // Importez body-parser
 
 // MongoDB connection
 mongoose.connect('mongodb://localhost:27017/sunupointage')
@@ -26,6 +27,9 @@ const io = new socketIo(server, {
         credentials: true
     }
 });
+
+// Utiliser body-parser pour analyser les corps des requêtes JSON
+app.use(bodyParser.json());
 
 // Serial Port configuration
 const port = new SerialPort({
@@ -251,12 +255,10 @@ setInterval(() => {
     }
 }, 5000);
 
-
 function formatDate(date) {
     const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
     return new Date(date).toLocaleDateString('fr-FR', options); // Format français
 }
-
 
 app.get('/controle-acces/pointages/:cardID', async(req, res) => {
     const { cardID } = req.params;
@@ -300,7 +302,6 @@ app.get('/controle-acces/pointages/:cardID', async(req, res) => {
     }
 });
 
-
 // Méthode pour récupérer tous les pointages de la journée
 async function getPointagesOfTheDay() {
     try {
@@ -327,8 +328,48 @@ app.get('/api/pointages', async(req, res) => {
     }
 });
 
+// Ajouter les routes pour approuver et rejeter le pointage
+app.post('/api/pointages/approve', async(req, res) => {
+    const { userId, date, type } = req.body;
+
+    try {
+        const pointage = await ControleAcces.findOne({ userId, date, type });
+
+        if (!pointage) {
+            return res.status(404).json({ message: 'Pointage non trouvé' });
+        }
+
+        pointage.statut = 'Approuvé';
+        await pointage.save();
+
+        res.json({ message: 'Pointage approuvé avec succès' });
+    } catch (error) {
+        console.error('Erreur lors de l\'approbation du pointage:', error);
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+});
+
+app.post('/api/pointages/reject', async(req, res) => {
+    const { userId, date, type } = req.body;
+
+    try {
+        const pointage = await ControleAcces.findOne({ userId, date, type });
+
+        if (!pointage) {
+            return res.status(404).json({ message: 'Pointage non trouvé' });
+        }
+
+        pointage.statut = 'Rejeté';
+        await pointage.save();
+
+        res.json({ message: 'Pointage rejeté avec succès' });
+    } catch (error) {
+        console.error('Erreur lors du rejet du pointage:', error);
+        res.status(500).json({ message: 'Erreur serveur' });
+    }
+});
+
 // Start server
 server.listen(3000, () => {
     console.log('WebSocket server listening on port 3000');
-
 });
