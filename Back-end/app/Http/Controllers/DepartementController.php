@@ -62,7 +62,7 @@ class DepartementController extends Controller
         $departement = Departement::with('users')->findOrFail($id);
 
         // Ajouter le nombre d'employés
-        $departement->nbre_employe = $departement->users->where('role', 'employe')->count();
+        $departement->nbre_employe = $departement->users->count();
 
         return response()->json($departement);
     }
