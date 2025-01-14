@@ -169,9 +169,7 @@ Route::prefix('controle-acces')->group(function () {
     Route::delete('/{id}', [ControleAccesController::class, 'destroy']); // Supprimer un pointage
 });
 
-// Route de test pour la connexion à MongoDB
-use App\Http\Controllers\ForgotPasswordController;
-use App\Http\Controllers\ResetPasswordController;
+
 
 Route::prefix('user')->group(function () {
     Route::post('/', [UserController::class, 'store']); // Créer un utilisateur
