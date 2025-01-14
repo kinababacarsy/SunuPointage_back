@@ -33,7 +33,7 @@ class UserController extends Controller
             'photo' => 'nullable|string',
             'departement_id' => 'nullable|string|exists:departements,_id',
             'cohorte_id' => 'nullable|string|exists:cohortes,_id',
-            'cardID' => 'nullable|string|unique:users,cardID,NULL,id,cardID,NULL',
+            'cardID' => 'nullable|string',
             'status' => 'sometimes|string|in:Actif,Bloque,Supprime',
         ];
     
@@ -244,7 +244,11 @@ class UserController extends Controller
                 ];
                 continue;
             }
-
+        // Photo par défaut si non fournie
+        if (empty($validatedData['photo'])) {
+            $validatedData['photo'] = 'inconnu.png';
+        }
+            
             // Créer une requête pour chaque enregistrement
             $userRequest = new Request([
                 'nom' => $record['nom'],
@@ -252,9 +256,10 @@ class UserController extends Controller
                 'email' => $record['email'],
                 'telephone' => $record['telephone'],
                 'adresse' => $record['adresse'],
-                'photo' => $record['photo'],
+                
                 'status' => 'Actif', // Statut par défaut
                 'cardID' => null, // cardID par défaut
+                
             ]);
 
             // Créer l'utilisateur en fonction du département ou de la cohorte

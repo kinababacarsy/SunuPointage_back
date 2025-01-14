@@ -67,11 +67,13 @@ Route::delete('sup/cohortes/{id}', [CohorteController::class, 'delete']);
 Route::get('/cohortes/count', [CohorteController::class, 'count']);
 
 // Routes pour les utilisateurs
-Route::get('users', [UserController::class, 'list']);
-Route::post('ajout/users', [UserController::class, 'create']);
-Route::get('voir/users/{id}', [UserController::class, 'view']);
-Route::put('maj/users/{id}', [UserController::class, 'update']);
-Route::delete('sup/users/{id}', [UserController::class, 'delete']);
+// Routes pour les utilisateurs
+Route::get('users', [UserController::class, 'index']); // Lister tous les utilisateurs
+Route::post('ajout/users', [UserController::class, 'store']); // Créer un utilisateur
+Route::get('voir/users/{id}', [UserController::class, 'show']); // Voir un utilisateur spécifique
+Route::get('users/{id}', [UserController::class, 'show']); // Voir un utilisateur spécifique
+Route::put('maj/users/{id}', [UserController::class, 'update']); // Mettre à jour un utilisateur
+Route::delete('sup/users/{id}', [UserController::class, 'destroy']); // Supprimer un utilisateur
 Route::get('/users/count', [UserController::class, 'count']); //compte le nombre d'utilisateurs
 Route::get('/users/count/{role}', [UserController::class, 'countByRole']); //compte le nombre d'utilisateurs par role
 
@@ -95,10 +97,14 @@ Route::patch('users/debloquer/{id}', [UserController::class, 'debloquer']);
 Route::post('departements/{departement_id}/ajout/users', [UserController::class, 'createFromDepartement']);
 // Route pour importer des utilisateurs à partir d'un département
 Route::post('/departements/{departement_id}/import-users', [UserController::class, 'importCSVForDepartement']);
+// Route pour importer des utilisateurs à partir d'un département
+Route::post('/cohortes/{cohorte_id}/import-users', [UserController::class, 'importCSVForCohorte']);
 
 
 // Routes pour afficher les utilisateurs à partir d'un département
 Route::get('/users/departement/{departement_id}', [UserController::class, 'listByDepartement']);
+// Routes pour afficher les utilisateurs à partir d'une cohorte
+Route::get('/users/cohorte/{cohorte_id}', [UserController::class, 'listByCohorte']); // Lister les utilisateurs d'une cohorte
 
 // Récupérer le nombre d'employés dans un département
 Route::get('/departements/{departement_id}/employee-count', [DepartementController::class, 'getEmployeeCount']);
