@@ -64,8 +64,10 @@ class UserController extends Controller
         // Valider les données
         $validatedData = $this->validateUserData($request);
     
+    
         // Générer le matricule
         $validatedData['matricule'] = $this->generateMatricule($validatedData['role']);
+    
     
         // Gestion du mot de passe
         if (in_array($validatedData['role'], ['admin', 'vigile'])) {
@@ -77,10 +79,12 @@ class UserController extends Controller
             $validatedData['mot_de_passe'] = null;
         }
     
+    
         // Photo par défaut si non fournie
         if (empty($validatedData['photo'])) {
             $validatedData['photo'] = 'images/inconnu.png';
         }
+    
     
         // Statut par défaut si non fourni
         if (!isset($validatedData['status'])) {
@@ -101,6 +105,32 @@ class UserController extends Controller
             ], 500);
         }
     }
+
+     // Ajouter un cardID à un utilisateur
+     public function addCardId(Request $request, $id)
+     {
+         // Valider les données de la requête
+         $validatedData = $request->validate([
+             'cardID' => 'required|string',
+         ]);
+ 
+         // Récupérer l'utilisateur par son ID
+         $user = User::find($id);
+ 
+         if (!$user) {
+             return response()->json(['message' => 'Utilisateur non trouvé'], 404);
+         }
+ 
+         // Mettre à jour le cardID de l'utilisateur
+         $user->cardID = $validatedData['cardID'];
+         $user->save();
+ 
+         return response()->json([
+             'message' => 'CardID ajouté avec succès !',
+             'user' => $user,
+         ], 200);
+     }
+    
 
     // Mettre à jour un utilisateur
     public function update(Request $request, $id)
@@ -135,6 +165,14 @@ class UserController extends Controller
         // Mettre à jour uniquement les champs fournis
         $user->fill($validatedData)->save();
     
+        }
+
+        // Assigner la carte UID si fournie
+    if (isset($validatedData['cardUID'])) {
+        $user->cardUID = $validatedData['cardUID'];
+    }
+
+        $user->update($validatedData);
         return response()->json($user, 200);
     }
 
@@ -196,23 +234,23 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'csv_file' => 'required|file|mimes:csv,txt',
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
-
+    
         // Lire le fichier CSV
         $file = $request->file('csv_file');
         $csv = Reader::createFromPath($file->getPathname(), 'r');
         $csv->setHeaderOffset(0);
-
+    
         $errors = [];
         $importedUsers = [];
         $lineNumber = 1;
-
+    
         foreach ($csv as $record) {
             $lineNumber++;
-
+    
             // Validation des données du CSV
             $validator = Validator::make($record, [
                 'nom' => 'required|string|max:255',
@@ -222,7 +260,7 @@ class UserController extends Controller
                 'adresse' => 'nullable|string',
                 'photo' => 'nullable|string',
             ]);
-
+    
             if ($validator->fails()) {
                 $errors[] = [
                     'line' => $lineNumber,
@@ -231,7 +269,7 @@ class UserController extends Controller
                 ];
                 continue;
             }
-
+    
             // Créer une requête pour chaque enregistrement
             $userRequest = new Request([
                 'nom' => $record['nom'],
@@ -240,10 +278,10 @@ class UserController extends Controller
                 'telephone' => $record['telephone'],
                 'adresse' => $record['adresse'],
                 'photo' => $record['photo'],
-                'status' => 'Actif', // Statut par défaut
-                'cardID' => null, // cardID par défaut
+                'status' => null, // Ajout de status avec une valeur par défaut null
+                'cardID' => null, // Ajout de cardID avec une valeur par défaut null
             ]);
-
+    
             // Créer l'utilisateur en fonction du département ou de la cohorte
             if ($departement_id) {
                 $response = $this->createFromDepartement($userRequest, $departement_id);
@@ -257,7 +295,7 @@ class UserController extends Controller
                 ];
                 continue;
             }
-
+    
             if ($response->getStatusCode() === 201) {
                 $importedUsers[] = $response->getData();
             } else {
@@ -268,18 +306,18 @@ class UserController extends Controller
                 ];
             }
         }
-
+    
         return response()->json([
             'imported_users' => $importedUsers,
             'errors' => $errors,
         ], 200);
     }
-
     // Créer un utilisateur à partir d'un département
+    public function createFromDepartement(Request $request, $departement_id)
     public function createFromDepartement(Request $request, $departement_id)
     {
         $departement = Departement::find($departement_id);
-
+    
         if (!$departement) {
             return response()->json(['message' => 'Département non trouvé'], 404);
         }
@@ -289,8 +327,10 @@ class UserController extends Controller
         $request->merge(['departement_id' => $departement_id, 'role' => $role]);
         return $this->store($request);
     }
+    
 
     // Créer un utilisateur à partir d'une cohorte
+    public function createFromCohorte(Request $request, $cohorte_id)
     public function createFromCohorte(Request $request, $cohorte_id)
     {
         $cohorte = Cohorte::find($cohorte_id);

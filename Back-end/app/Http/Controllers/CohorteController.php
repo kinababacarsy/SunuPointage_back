@@ -8,7 +8,9 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class CohorteController extends Controller
+
 {
+
     /**
      * Liste des cohortes avec le nombre d'apprenants
      */
