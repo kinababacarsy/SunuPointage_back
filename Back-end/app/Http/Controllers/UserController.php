@@ -375,7 +375,7 @@ class UserController extends Controller
         return response()->json($count);
     }
 
-    public function Count()
+    public function count()
     {
         $count = [
             'employes' => User::where('role', 'employe')->count(),

@@ -74,7 +74,6 @@ Route::get('/cohortes/count', [CohorteController::class, 'count']);
 Route::get('users', [UserController::class, 'index']); // Lister tous les utilisateurs
 Route::post('ajout/users', [UserController::class, 'store']); // Créer un utilisateur
 Route::get('voir/users/{id}', [UserController::class, 'show']); // Voir un utilisateur spécifique
-Route::get('users/{id}', [UserController::class, 'show']); // Voir un utilisateur spécifique
 Route::put('maj/users/{id}', [UserController::class, 'update']); // Mettre à jour un utilisateur
 Route::delete('sup/users/{id}', [UserController::class, 'destroy']); // Supprimer un utilisateur
 Route::get('/users/count', [UserController::class, 'count']); //compte le nombre d'utilisateurs
