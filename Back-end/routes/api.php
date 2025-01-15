@@ -27,7 +27,10 @@ Route::post('/controle-acces', [ControleAccesController::class, 'store']);
 Route::get('/controle-acces', [ControleAccesController::class, 'index']);
 Route::get('/controle-acces/{id}', [ControleAccesController::class, 'show']);
 Route::get('/controle-acces/user/{userId}', [ControleAccesController::class, 'getPointagesByUserId']);
-Route::get('/controle-acces/pointages/{cardID}', [ControleAccesController::class, 'getPointagesByCardId']); // Récupérer les pointages par cardID
+Route::get('/controle-acces/pointages/{cardID}', [ControleAccesController::class, 'getPointagesByCardId']); 
+Route::post('/controle-acces/absence', [ControleAccesController::class, 'storeAbsence']);
+Route::get('/controle-acces/user/{userId}/absences', [ControleAccesController::class, 'getAbsencesByUserId']);
+// Récupérer les pointages par cardID
 
 // Routes pour la réinitialisation de mot de passe
 Route::post('password/email', [ForgotPasswordController::class, 'forgotPassword'])->name('password.email');

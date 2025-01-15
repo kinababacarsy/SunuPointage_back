@@ -95,6 +95,9 @@ class UserController extends Controller
         if (!isset($validatedData['status'])) {
             $validatedData['status'] = 'Actif';
         }
+        if (!isset($validatedData['cardID'])) {
+            $validatedData['cardID'] = null;
+        }
     
         // Créer l'utilisateur avec la méthode create
         try {

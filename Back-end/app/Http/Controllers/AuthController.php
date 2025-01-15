@@ -41,7 +41,18 @@ class AuthController extends Controller
           $token = JWTAuth::fromUser($user);
 
           // Retourner le token et le rôle de l'utilisateur
-          return response()->json(['token' => $token, 'role' => $user->role], 200);
+    // Retourner le token JWT, le rôle et les informations de l'utilisateur
+    return response()->json([
+        'token' => $token,
+        'role' => $user->role,
+        'user' => [
+            'id' => $user->id,
+            'nom' => $user->nom,
+            'email' => $user->email,
+            
+            'photo' => $user->photo,
+        ],
+    ], 200);
       }
 
       // Connexion via email et mot de passe (tous les utilisateurs)
@@ -57,8 +68,19 @@ class AuthController extends Controller
           // Authentifier l'utilisateur avec JWT
           $token = JWTAuth::fromUser($user);
 
-          // Retourner le token et le rôle de l'utilisateur
-          return response()->json(['token' => $token, 'role' => $user->role], 200);
+    // Retourner le token JWT, le rôle et les informations de l'utilisateur
+    return response()->json([
+        'token' => $token,
+        'role' => $user->role,
+        'user' => [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            
+            'photo' => $user->photo,
+        ],
+    ], 200);
+          
       }
 
       // Si aucune des conditions n'est remplie

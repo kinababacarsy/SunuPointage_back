@@ -17,7 +17,9 @@ class ControleAcces extends Model
         'statut',
         'heureEntreePrevue',
         'heureDescentePrevue',
-        'etat'
+        'etat',
+        'absenceType', // Type d'absence (maladie, congé, etc.)
+        'description', // Description de l'absence
     ];
 
     // Définir la valeur par défaut pour le statut
