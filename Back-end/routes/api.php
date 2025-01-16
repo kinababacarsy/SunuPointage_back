@@ -39,8 +39,11 @@ Route::get('/users/count/{role}', [UserController::class, 'countByRole']); //com
 
 Route::get('users/presences', [UserController::class, 'getUserPresences']); //liste de presences
 Route::get('users/historique', [UserController::class, 'getUserHistorique']); //historique des pointages
-// Dans routes/api.php
-Route::get('/users/presences/date/{date}', [UserController::class, 'getPresencesByDate']);
+Route::get('/users/presences/date/{date}', [UserController::class, 'getPresencesByDate']); // filtre de
+
+Route::get('/users/{id}', [UserController::class, 'show']); //infos utilisateur
+Route::put('/users/{id}/add-card', [UserController::class, 'addCardId']); // Ajouter un cardID à un utilisateur
+
 
 
 
@@ -134,8 +137,6 @@ Route::get('voir/users/{id}', [UserController::class, 'show']); // Voir un utili
 Route::put('maj/users/{id}', [UserController::class, 'update']); // Mettre à jour un utilisateur
 Route::delete('sup/users/{id}', [UserController::class, 'destroy']); // Supprimer un utilisateur
 
-Route::get('/users/{id}', [UserController::class, 'show']); //infos utilisateur
-Route::put('/users/{id}/add-card', [UserController::class, 'addCardId']); // Ajouter un cardID à un utilisateur
 
 
 
