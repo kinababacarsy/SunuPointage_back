@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Departement;
-use App\Models\Users;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -114,3 +114,4 @@ class DepartementController extends Controller
         return response()->json(['total_departements' => $totalDepartements]);
     }
 }
+

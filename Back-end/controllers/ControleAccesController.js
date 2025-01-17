@@ -25,7 +25,10 @@ exports.storeControleAcces = async(req, res) => {
             statut: user.status || "Actif",
         };
 
-        const currentDate = moment();
+        // Exemple avec moment.js
+        const currentDate = moment(); // Utilisation de moment() pour obtenir la date actuelle
+
+
         const hourRecorded = currentDate.format("HH:mm");
         const entryTime = moment("09:00", "HH:mm");
         const exitTime = moment("17:00", "HH:mm");
