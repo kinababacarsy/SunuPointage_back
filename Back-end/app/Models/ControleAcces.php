@@ -2,15 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\MongoBD\Laravel\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 
 class ControleAcces extends Model
 {
-    //
-
-
     protected $connection = 'mongodb';
-    protected $collection = 'controle_acces';
+    protected $collection = 'controleacces'; // Mettez à jour le nom de la collection ici
 
     protected $fillable = [
         'userId',
@@ -20,6 +17,19 @@ class ControleAcces extends Model
         'statut',
         'heureEntreePrevue',
         'heureDescentePrevue',
-        'etat'
+        'etat',
+        'absenceType', // Type d'absence (maladie, congé, etc.)
+        'description', // Description de l'absence
     ];
+
+    // Définir la valeur par défaut pour le statut
+    protected $attributes = [
+        'statut' => 'En attente', // Valeur par défaut
+    ];
+
+      // Relation : Un enregistrement de pointage appartient à un utilisateur
+      public function user()
+      {
+          return $this->belongsTo(User::class, 'userId', '_id');
+      }
 }
